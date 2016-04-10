@@ -1,120 +1,79 @@
 #include "ShaderHandler.h"
-#include <d3dcompiler.h>
-#include <stdexcept>
-
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "d3dcompiler.lib")
 
 namespace Renderer
 {
-	ShaderHandler::ShaderHandler(ID3D11Device* device)
+	ComPtr<ID3D11SamplerState> ShaderHandler::CreateSamplerState(ComPtr<ID3D11Device> device, SamplerStates state)
 	{
-
-		////////////////////////////////////////////////////////////// Create samplers //////////////////////////////////////////////////////////////
 		HRESULT result;
 		D3D11_SAMPLER_DESC samplerDesc;
 		ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-		//Create a WRAP texture sampler state description
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.MipLODBias = 0.0f;
-		samplerDesc.MaxAnisotropy = 1;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-		samplerDesc.BorderColor[0] = 0;
-		samplerDesc.BorderColor[1] = 0;
-		samplerDesc.BorderColor[2] = 0;
-		samplerDesc.BorderColor[3] = 0;
-		samplerDesc.MinLOD = 0;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		ComPtr<ID3D11SamplerState> samplerState;
 
-		result = device->CreateSamplerState(&samplerDesc, &samplerWRAP);
-		if (FAILED(result))
+		switch (state)
 		{
-			throw std::runtime_error("ShaderHandler: _samplerWRAP initialization failed.");
+		case Renderer::WRAP:
+		{
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.MipLODBias = 0.0f;
+			samplerDesc.MaxAnisotropy = 1;
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+			samplerDesc.BorderColor[0] = 0;
+			samplerDesc.BorderColor[1] = 0;
+			samplerDesc.BorderColor[2] = 0;
+			samplerDesc.BorderColor[3] = 0;
+			samplerDesc.MinLOD = 0;
+			samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+			result = device->CreateSamplerState(&samplerDesc, &samplerState);
+			if (FAILED(result))
+				throw std::runtime_error("ShaderHandler::CreateSamplerState: WRAP initialization failed.");
+
+			return samplerState;
+			
+			break;
 		}
 
-		//Create a CLAMP texture sampler state description.
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-
-		result = device->CreateSamplerState(&samplerDesc, &samplerCLAMP);
-		if (FAILED(result))
+		case Renderer::POINT:
 		{
-			throw std::runtime_error("ShaderHandler: _samplerCLAMP initialization failed.");
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.BorderColor[0] = 0;
+			samplerDesc.BorderColor[1] = 0;
+			samplerDesc.BorderColor[2] = 0;
+			samplerDesc.BorderColor[3] = 0;
+			samplerDesc.MinLOD = 0.0f;
+			samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+			samplerDesc.MipLODBias = 0.0f;
+			samplerDesc.MaxAnisotropy = 0;
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+
+			result = device->CreateSamplerState(&samplerDesc, &samplerState);
+			if (FAILED(result))
+				throw std::runtime_error("ShaderHandler::CreateSamplerState: POINT initialization failed.");
+
+			return samplerState;
+
+			break;
+		}
+		default:
+			break;
 		}
 
-		//Create a COMPARISON sampler state
-		samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-		samplerDesc.BorderColor[0] = 1.0f;
-		samplerDesc.BorderColor[1] = 1.0f;
-		samplerDesc.BorderColor[2] = 1.0f;
-		samplerDesc.BorderColor[3] = 1.0f;
-		samplerDesc.MinLOD = 0.0f;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		samplerDesc.MipLODBias = 0.0f;
-		samplerDesc.MaxAnisotropy = 0;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-
-		result = device->CreateSamplerState(&samplerDesc, &samplerCMP);
-		if (FAILED(result))
-		{
-			throw std::runtime_error("ShaderHandler: _samplerCMP initialization failed.");
-		}
-
-		//Create a POINT sampler state
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.BorderColor[0] = 0;
-		samplerDesc.BorderColor[1] = 0;
-		samplerDesc.BorderColor[2] = 0;
-		samplerDesc.BorderColor[3] = 0;
-		samplerDesc.MinLOD = 0.0f;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		samplerDesc.MipLODBias = 0.0f;
-		samplerDesc.MaxAnisotropy = 0;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-
-		result = device->CreateSamplerState(&samplerDesc, &samplerPOINT);
-		if (FAILED(result))
-		{
-			throw std::runtime_error("ShaderHandler: _samplerPOINT initialization failed.");
-		}
-
-		////////////////////////////////////////////////////////////// Create Shaders ///////////////////////////////////////////////////////////////
-		D3D11_INPUT_ELEMENT_DESC posNormTexInputDesc[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-
-		int numElements = sizeof(posNormTexInputDesc) / sizeof(posNormTexInputDesc[0]);
-
+		return nullptr;
 	}
 
-	ShaderHandler::~ShaderHandler()
-	{
-		SAFE_RELEASE(samplerWRAP);
-		SAFE_RELEASE(samplerPOINT);
-		SAFE_RELEASE(samplerCLAMP);
-		SAFE_RELEASE(samplerCMP);
-	}
-
-	ShaderHandler::VertexShaderData* ShaderHandler::CreateVertexShader(ID3D11Device* device, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize)
+	Renderer::VertexShaderData* ShaderHandler::CreateVertexShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11VertexShader* vertexShader = nullptr;
-		ID3D11InputLayout* inputLayout = nullptr;
+		ComPtr<ID3D11VertexShader> vertexShader;
+		ComPtr<ID3D11InputLayout> inputLayout;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
 		//result = D3DCompileFromFile(fileName, NULL, NULL, "main", "vs_5_0", D3DCOMPILE_DEBUG, 0, &shaderBuffer, &errorMessage);
@@ -145,15 +104,14 @@ namespace Renderer
 		}
 		return new VertexShaderData(vertexShader, inputLayout);
 	}
-
-	ID3D11HullShader* ShaderHandler::CreateHullShader(ID3D11Device* device, const std::wstring& fileName)
+	ComPtr<ID3D11HullShader> ShaderHandler::CreateHullShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11HullShader* hullShader = nullptr;
+		ComPtr<ID3D11HullShader> hullShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "hs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "hs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)
@@ -179,14 +137,14 @@ namespace Renderer
 
 		return hullShader;
 	}
-	ID3D11GeometryShader* ShaderHandler::CreateGeometryShader(ID3D11Device* device, const std::wstring& fileName)
+	ComPtr<ID3D11GeometryShader> ShaderHandler::CreateGeometryShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11GeometryShader* geometryShader = nullptr;
+		ComPtr<ID3D11GeometryShader> geometryShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "gs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "gs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)
@@ -212,14 +170,14 @@ namespace Renderer
 
 		return geometryShader;
 	}
-	ID3D11DomainShader* ShaderHandler::CreateDomainShader(ID3D11Device* device, const std::wstring& fileName)
+	ComPtr<ID3D11DomainShader> ShaderHandler::CreateDomainShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11DomainShader* domainShader = nullptr;
+		ComPtr<ID3D11DomainShader> domainShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ds_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ds_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)
@@ -245,15 +203,14 @@ namespace Renderer
 
 		return domainShader;
 	}
-	ID3D11PixelShader* ShaderHandler::CreatePixelShader(ID3D11Device* device, const std::wstring& fileName)
+	ComPtr<ID3D11PixelShader> ShaderHandler::CreatePixelShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11PixelShader* pixelShader = nullptr;
+		ComPtr<ID3D11PixelShader> pixelShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
-		//result = D3DCompileFromFile(fileName, NULL, NULL, "main", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ps_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)
@@ -279,14 +236,14 @@ namespace Renderer
 
 		return pixelShader;
 	}
-	ID3D11ComputeShader* ShaderHandler::CreateComputeShader(ID3D11Device* device, const std::wstring& fileName)
+	ComPtr<ID3D11ComputeShader> ShaderHandler::CreateComputeShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ID3D11ComputeShader* computeShader = nullptr;
+		ComPtr<ID3D11ComputeShader> computeShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "cs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "cs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)
@@ -312,18 +269,4 @@ namespace Renderer
 
 		return computeShader;
 	}
-
-	//void ShaderHandler::SetGeometryStageShaders(ID3D11DeviceContext * deviceContext)
-	//{
-	//	// Set vertex layout
-	//	deviceContext->IASetInputLayout(_geoPassVS->_inputLayout);
-
-	//	// Set shaders
-	//	deviceContext->VSSetShader(_geoPassVS->_vertexShader, nullptr, 0);
-	//	deviceContext->PSSetShader(_geoPassPS, nullptr, 0);
-	//	deviceContext->GSSetShader(nullptr, nullptr, 0);
-
-	//	//Set sampler
-	//	deviceContext->PSSetSamplers(0, 1, &_samplerWRAP);
-	//}
 }

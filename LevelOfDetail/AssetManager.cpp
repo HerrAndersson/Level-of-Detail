@@ -1,44 +1,30 @@
 #include "AssetManager.h"
 #include "WICTextureLoader.h"
 
-AssetManager::AssetManager(ComPtr<ID3D11Device> deviceRef)
+AssetManager::AssetManager()
 {
-	this->deviceRef = deviceRef;
-
-	//LoadModel("Assets/Models/" + modelNames[i]);
-	//textures.push_back(LoadTexture("Assets/Textures/" + textureNames[i]));
-
-	RenderObject* renderObject = new RenderObject();
-
-	//Model model;
-	//LoadModel(path, model);
-
-	//renderObject->model = model;
-	//renderObject->diffuseTexture = LoadTexture(path);
-
-	renderObjects.push_back(renderObject);
+	renderObjects.reserve(5);
 };
 
 AssetManager::~AssetManager()
 {
-	for (auto m : models) delete m;
-	models.clear();
-
-	for (auto t : textures)
-	{
-		if (t)
-		{
-			t->Release();
-		}
-	}
-
-	textures.clear();
-
-	for (auto ro : renderObjects) delete ro;
 	renderObjects.clear();
 };
 
-void AssetManager::LoadModel(string file_path, Model& model)
+void AssetManager::LoadObject(ComPtr<ID3D11Device> device, string modelPath, string texturePath)
+{
+	RenderObject renderObject;
+
+	Model model;
+	LoadModel(device, modelPath, model);
+
+	renderObject.model = model;
+	renderObject.diffuseTexture = LoadTexture(device, texturePath);
+
+	renderObjects.push_back(renderObject);
+}
+
+void AssetManager::LoadModel(ComPtr<ID3D11Device> device, string file_path, Model& model)
 {
 	ifstream infile;
 	infile.open(file_path.c_str(), ifstream::binary);
@@ -96,12 +82,12 @@ void AssetManager::LoadModel(string file_path, Model& model)
 				{
 					infile >> vertexIndex[i];
 					//Check if we can load UV coordinates
-					if (infile.peek() == '/')
+					if (infile.peek() == '/' || infile.peek() == '//')
 					{
 						infile.get();
 						infile >> uvIndex[i];
 						//Check if we can load normals
-						if (infile.peek() == '/')
+						if (infile.peek() == '/' || infile.peek() == '//')
 						{
 							infile.get();
 							infile >> normalIndex[i];
@@ -137,7 +123,7 @@ void AssetManager::LoadModel(string file_path, Model& model)
 
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = faces.data();
-	HRESULT result = deviceRef->CreateBuffer(&bufferDesc, &data, &vertexBuffer);
+	HRESULT result = device->CreateBuffer(&bufferDesc, &data, &vertexBuffer);
 
 	if (FAILED(result))
 		throw runtime_error("AssetManager(LoadModel): Failed to create vertexBuffer");
@@ -145,16 +131,16 @@ void AssetManager::LoadModel(string file_path, Model& model)
 	model.vertexBuffer = vertexBuffer;
 }
 
-ComPtr<ID3D11ShaderResourceView> AssetManager::LoadTexture(string file_path)
+ComPtr<ID3D11ShaderResourceView> AssetManager::LoadTexture(ComPtr<ID3D11Device> device, string file_path)
 {
 	ComPtr<ID3D11ShaderResourceView> texture;
 	wstring widestr = wstring(file_path.begin(), file_path.end());
-	DirectX::CreateWICTextureFromFile(deviceRef.Get(), widestr.c_str(), nullptr, &texture, 0);
+	DirectX::CreateWICTextureFromFile(device.Get(), widestr.c_str(), nullptr, &texture, 0);
 
 	return texture;
 }
 
 RenderObject* AssetManager::GetRenderObject(int id)
 {
-	return renderObjects[id];
+	return &renderObjects[id];
 }

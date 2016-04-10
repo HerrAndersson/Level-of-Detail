@@ -6,6 +6,7 @@
 #include "Math.h"
 #include "DirectXHandler.h"
 #include "ShaderHandler.h"
+#include "AssetManager.h"
 
 using namespace DirectX;
 using namespace Math;
@@ -32,12 +33,16 @@ private:
 	SimpleCamera camera;
 	StepTimer timer;
 	DirectXHandler* dx;
+	AssetManager am;
 
 	matrix4x4 projectionMatrix;
 
-	void LoadPipeline();
-	void LoadAssets();
+	VertexShaderData* defaultVS;
+	ComPtr<ID3D11PixelShader> defaultPS;
+	ComPtr<ID3D11SamplerState> samplerWrap;
 
+	void LoadAssets();
+	void LoadShaders();
 	float RandomPercent();
 
 public:

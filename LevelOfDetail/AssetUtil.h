@@ -30,6 +30,6 @@ namespace AssetUtility
 	struct RenderObject 
 	{
 		Model model;
-		ComPtr<ID3D11Buffer> diffuseTexture = nullptr;
+		ComPtr<ID3D11ShaderResourceView> diffuseTexture = nullptr;
 	};
 }

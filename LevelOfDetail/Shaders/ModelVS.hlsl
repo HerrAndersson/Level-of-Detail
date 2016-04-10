@@ -17,15 +17,15 @@ cbuffer matrixBufferPerObject : register(b1)
 struct VS_IN
 {
 	float3 pos		: POSITION;
-	float3 normal	: NORMAL;
 	float2 uv		: TEXCOORD;
+	float3 normal	: NORMAL;
 };
 
 struct VS_OUT
 {
 	float4 pos			: SV_POSITION;
-	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
 };
 
 VS_OUT main(VS_IN input)

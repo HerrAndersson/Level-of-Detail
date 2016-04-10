@@ -15,9 +15,6 @@
 
 #pragma once
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
 #endif
@@ -39,11 +36,19 @@ const int SCREEN_HEIGHT = 720;
 #include <vector>
 #include <shellapi.h>
 #include <stdexcept>
+#include <string>
 
 #include "Math.h"
 
 using Microsoft::WRL::ComPtr;
 using std::string;
 using std::wstring;
+
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
+
+const string ASSET_PATH = "Assets/";
+const string MODEL_PATH = ASSET_PATH + "Models/";
+const string TEXTURE_PATH = ASSET_PATH + "Textures/";
 
 

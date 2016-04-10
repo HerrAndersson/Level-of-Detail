@@ -1,51 +1,37 @@
-#ifndef SHADERHANDLER_H
-#define SHADERHANDLER_H
-#include <d3d11.h>
-#include <string>
+#pragma once
 #include "stdafx.h"
 
 namespace Renderer
 {
+	struct VertexShaderData
+	{
+		ComPtr<ID3D11VertexShader> vertexShader;
+		ComPtr<ID3D11InputLayout> inputLayout;
+
+		VertexShaderData() {}
+		VertexShaderData(ComPtr<ID3D11VertexShader>, ComPtr<ID3D11InputLayout>)
+		{
+			vertexShader = vertexShader;
+			inputLayout = inputLayout;
+		}
+
+		~VertexShaderData(){}
+	};
+
+	enum SamplerStates { WRAP, POINT };
+
 	class ShaderHandler
 	{
-	private:
-
-		struct VertexShaderData
-		{
-			ID3D11VertexShader* vertexShader;
-			ID3D11InputLayout* inputLayout;
-
-			VertexShaderData(ID3D11VertexShader* vertexShader, ID3D11InputLayout* inputLayout)
-			{
-				vertexShader = vertexShader;
-				inputLayout = inputLayout;
-			}
-
-			~VertexShaderData()
-			{
-				SAFE_RELEASE(vertexShader);
-				SAFE_RELEASE(inputLayout);
-			}
-		};
-
-		//Samplers
-		ID3D11SamplerState*		samplerWRAP;
-		ID3D11SamplerState*		samplerPOINT;
-		ID3D11SamplerState*		samplerCLAMP;
-		ID3D11SamplerState*		samplerCMP;
-
-		VertexShaderData* CreateVertexShader(ID3D11Device* device, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize);
-		ID3D11HullShader* CreateHullShader(ID3D11Device* device, const std::wstring& fileName);
-		ID3D11GeometryShader* CreateGeometryShader(ID3D11Device* device, const std::wstring& fileName);
-		ID3D11DomainShader* CreateDomainShader(ID3D11Device* device, const std::wstring& fileName);
-		ID3D11PixelShader* CreatePixelShader(ID3D11Device* device, const std::wstring& fileName);
-		ID3D11ComputeShader* CreateComputeShader(ID3D11Device* device, const std::wstring& fileName);
 
 	public:
 
-		ShaderHandler(ID3D11Device* device);
-		~ShaderHandler();
+		static VertexShaderData* CreateVertexShader(ComPtr<ID3D11Device>, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize, UINT compileFlags);
+		static ComPtr<ID3D11HullShader> CreateHullShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags);
+		static ComPtr<ID3D11GeometryShader> CreateGeometryShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags);
+		static ComPtr<ID3D11DomainShader> CreateDomainShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags);
+		static ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags);
+		static ComPtr<ID3D11ComputeShader> CreateComputeShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags);
+
+		static ComPtr<ID3D11SamplerState> CreateSamplerState(ComPtr<ID3D11Device> device, SamplerStates state);
 	};
 }
-
-#endif

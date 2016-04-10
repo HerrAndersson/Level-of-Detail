@@ -1,0 +1,49 @@
+//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently.
+
+#pragma once
+
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
+#endif
+
+#define SAFE_RELEASE(x) if( x ) { (x)->Release(); (x) = nullptr; }
+#define SAFE_DELETE(x) if( x ) { delete x; (x) = nullptr; }
+
+#include <windows.h>
+
+#include <dxgi1_4.h>
+#include <D3Dcompiler.h>
+#include <d3d11_3.h>
+#include <DirectXMath.h>
+#include <pix.h>
+#include <d2d1_3.h>
+#include <dwrite.h>
+
+#include <wrl.h>
+#include <vector>
+#include <shellapi.h>
+#include <stdexcept>
+
+#include "Math.h"
+
+using Microsoft::WRL::ComPtr;
+using std::string;
+using std::wstring;
+
+

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="LevelOfDetail.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="DXSample.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleCamera.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32Application.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="lodepng.cpp">
+      <Filter>AssetHandling</Filter>
+    </ClCompile>
+    <ClCompile Include="WICTextureLoader.cpp">
+      <Filter>AssetHandling</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManager.cpp">
+      <Filter>AssetHandling</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelPLY.cpp">
+      <Filter>AssetHandling</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXHandler.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderHandler.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LevelOfDetail.h" />
+    <ClInclude Include="DXSample.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="DXSampleHelper.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleCamera.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="StepTimer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32Application.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="lodepng.h">
+      <Filter>AssetHandling</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>AssetHandling</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.h">
+      <Filter>AssetHandling</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelPLY.h">
+      <Filter>AssetHandling</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetUtil.h">
+      <Filter>AssetHandling</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXHandler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderHandler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{d832c578-0452-41c3-a085-072e35482aa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetHandling">
+      <UniqueIdentifier>{ce379367-67b1-40a2-a6ea-bf5578867119}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{7d306778-64ff-40a3-a537-cd5162f8ff20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{a1d9ef40-0d70-4ff6-8329-60fa1d03318d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\ModelPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\ModelVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

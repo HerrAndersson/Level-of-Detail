@@ -8,23 +8,25 @@ AssetManager::AssetManager()
 
 AssetManager::~AssetManager()
 {
+	for (auto o : renderObjects)
+		delete o;
 	renderObjects.clear();
 };
 
 void AssetManager::LoadObject(ComPtr<ID3D11Device> device, string modelPath, string texturePath)
 {
-	RenderObject renderObject;
+	RenderObject* renderObject = new RenderObject();
 
-	Model model;
+	Model* model = new Model();
 	LoadModel(device, modelPath, model);
 
-	renderObject.model = model;
-	renderObject.diffuseTexture = LoadTexture(device, texturePath);
+	renderObject->model = model;
+	renderObject->diffuseTexture = LoadTexture(device, texturePath);
 
 	renderObjects.push_back(renderObject);
 }
 
-void AssetManager::LoadModel(ComPtr<ID3D11Device> device, string file_path, Model& model)
+void AssetManager::LoadModel(ComPtr<ID3D11Device> device, string file_path, Model* model)
 {
 	ifstream infile;
 	infile.open(file_path.c_str(), ifstream::binary);
@@ -111,7 +113,7 @@ void AssetManager::LoadModel(ComPtr<ID3D11Device> device, string file_path, Mode
 		}
 	}
 
-	model.vertexBufferSize = (int)faces.size();
+	model->vertexBufferSize = (int)faces.size();
 	infile.close();
 
 	ID3D11Buffer* vertexBuffer;
@@ -128,12 +130,12 @@ void AssetManager::LoadModel(ComPtr<ID3D11Device> device, string file_path, Mode
 	if (FAILED(result))
 		throw runtime_error("AssetManager(LoadModel): Failed to create vertexBuffer");
 
-	model.vertexBuffer = vertexBuffer;
+	model->vertexBuffer = vertexBuffer;
 }
 
-ComPtr<ID3D11ShaderResourceView> AssetManager::LoadTexture(ComPtr<ID3D11Device> device, string file_path)
+ID3D11ShaderResourceView* AssetManager::LoadTexture(ComPtr<ID3D11Device> device, string file_path)
 {
-	ComPtr<ID3D11ShaderResourceView> texture;
+	ID3D11ShaderResourceView* texture;
 	wstring widestr = wstring(file_path.begin(), file_path.end());
 	DirectX::CreateWICTextureFromFile(device.Get(), widestr.c_str(), nullptr, &texture, 0);
 
@@ -142,5 +144,5 @@ ComPtr<ID3D11ShaderResourceView> AssetManager::LoadTexture(ComPtr<ID3D11Device> 
 
 RenderObject* AssetManager::GetRenderObject(int id)
 {
-	return &renderObjects[id];
+	return renderObjects[id];
 }

@@ -72,11 +72,10 @@ namespace Renderer
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11VertexShader> vertexShader;
-		ComPtr<ID3D11InputLayout> inputLayout;
+		ID3D11VertexShader* vertexShader;
+		ID3D11InputLayout* inputLayout;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &shaderBuffer, &errorMessage);
-		//result = D3DCompileFromFile(fileName, NULL, NULL, "main", "vs_5_0", D3DCOMPILE_DEBUG, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "vs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)

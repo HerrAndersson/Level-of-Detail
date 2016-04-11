@@ -10,10 +10,10 @@ class AssetManager
 
 private:
 
-	vector<RenderObject> renderObjects;
+	vector<RenderObject*> renderObjects;
 
-	void LoadModel(ComPtr<ID3D11Device> device, string file_path, Model& model);
-	ComPtr<ID3D11ShaderResourceView> LoadTexture(ComPtr<ID3D11Device> device, string file_path);
+	void LoadModel(ComPtr<ID3D11Device> device, string file_path, Model* model);
+	ID3D11ShaderResourceView* LoadTexture(ComPtr<ID3D11Device> device, string file_path);
 
 public:
 

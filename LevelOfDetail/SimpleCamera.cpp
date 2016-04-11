@@ -101,12 +101,12 @@ void SimpleCamera::Update(float elapsedSeconds)
 
 XMMATRIX SimpleCamera::GetViewMatrix()
 {
-	return XMMatrixLookToRH(XMLoadFloat3(&m_position), XMLoadFloat3(&m_lookDirection), XMLoadFloat3(&m_upDirection));
+	return XMMatrixLookToLH(XMLoadFloat3(&m_position), XMLoadFloat3(&m_lookDirection), XMLoadFloat3(&m_upDirection));
 }
 
 XMMATRIX SimpleCamera::GetProjectionMatrix(float fov, float aspectRatio, float nearPlane, float farPlane)
 {
-	return XMMatrixPerspectiveFovRH(fov, aspectRatio, nearPlane, farPlane);
+	return XMMatrixPerspectiveFovLH(fov, aspectRatio, nearPlane, farPlane);
 }
 
 void SimpleCamera::OnKeyDown(WPARAM key)

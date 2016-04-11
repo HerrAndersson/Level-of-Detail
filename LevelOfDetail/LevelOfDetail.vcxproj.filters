@@ -78,6 +78,9 @@
     <ClInclude Include="Utility.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="BufferStructs.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

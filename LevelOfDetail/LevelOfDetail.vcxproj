@@ -104,6 +104,7 @@
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssetUtil.h" />
+    <ClInclude Include="BufferStructs.h" />
     <ClInclude Include="DirectXHandler.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Math.h" />

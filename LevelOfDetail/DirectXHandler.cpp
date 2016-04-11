@@ -31,7 +31,7 @@ namespace Renderer
 
 		//Create swap chain
 		D3D_FEATURE_LEVEL featLvl = D3D_FEATURE_LEVEL_11_0;
-		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
+		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, swapChain.GetAddressOf(), device.GetAddressOf(), NULL, deviceContext.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating swap chain");
@@ -45,7 +45,7 @@ namespace Renderer
 			throw std::runtime_error("DirectXHandler: Could not get swap chain pointer");
 		}
 
-		result = device->CreateRenderTargetView(backBufferPointer, NULL, &backBufferRTV);
+		result = device->CreateRenderTargetView(backBufferPointer, NULL, backBufferRTV.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating render target view ");
@@ -86,7 +86,7 @@ namespace Renderer
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 		//Create the depth stencil view
-		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &backBufferDSV);
+		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, backBufferDSV.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating Depth stencil view");
@@ -100,7 +100,6 @@ namespace Renderer
 		ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 
 		rasterDesc.AntialiasedLineEnable = false;
-		rasterDesc.CullMode = D3D11_CULL_BACK;
 		rasterDesc.DepthBias = 0;
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.DepthClipEnable = true;
@@ -111,35 +110,25 @@ namespace Renderer
 		rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 		//Create rasterizer states
-		result = device->CreateRasterizerState(&rasterDesc, &rsBack);
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		result = device->CreateRasterizerState(&rasterDesc, rsBack.GetAddressOf());
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state BACK");
-		}
 
 		rasterDesc.CullMode = D3D11_CULL_FRONT;
-
-		result = device->CreateRasterizerState(&rasterDesc, &rsFront);
+		result = device->CreateRasterizerState(&rasterDesc, rsFront.GetAddressOf());
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state FRONT");
-		}
 
 		rasterDesc.CullMode = D3D11_CULL_NONE;
-
-		result = device->CreateRasterizerState(&rasterDesc, &rsNone);
+		result = device->CreateRasterizerState(&rasterDesc, rsNone.GetAddressOf());
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state NONE");
-		}
 
-		rasterDesc.CullMode = D3D11_CULL_BACK;
 		rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-		result = device->CreateRasterizerState(&rasterDesc, &rsWireframe);
+		result = device->CreateRasterizerState(&rasterDesc, rsWireframe.GetAddressOf());
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME");
-		}
 
 		/////////////////////////////////////////////////////// Depth stencil states ///////////////////////////////////////////////////////
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -161,7 +150,7 @@ namespace Renderer
 		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 		//Create depth enable
-		result = device->CreateDepthStencilState(&depthStencilDesc, &depthEnable);
+		result = device->CreateDepthStencilState(&depthStencilDesc, depthEnable.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating depth stencil ENABLE");
@@ -170,7 +159,7 @@ namespace Renderer
 		//Create depth disable
 		depthStencilDesc.DepthEnable = false;
 
-		result = device->CreateDepthStencilState(&depthStencilDesc, &depthDisable);
+		result = device->CreateDepthStencilState(&depthStencilDesc, depthDisable.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating depth stencil DISABLE");
@@ -188,7 +177,7 @@ namespace Renderer
 		omDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-		result = device->CreateBlendState(&omDesc, &blendEnable);
+		result = device->CreateBlendState(&omDesc, blendEnable.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating blend ENABLE");
@@ -197,7 +186,7 @@ namespace Renderer
 		//Create blend disable
 		omDesc.RenderTarget[0].BlendEnable = false;
 
-		result = device->CreateBlendState(&omDesc, &blendDisable);
+		result = device->CreateBlendState(&omDesc, blendDisable.GetAddressOf());
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating blend DISABLE");

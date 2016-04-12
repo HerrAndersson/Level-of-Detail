@@ -31,7 +31,7 @@ namespace Renderer
 
 		//Create swap chain
 		D3D_FEATURE_LEVEL featLvl = D3D_FEATURE_LEVEL_11_0;
-		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, swapChain.GetAddressOf(), device.GetAddressOf(), NULL, deviceContext.GetAddressOf());
+		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating swap chain");
@@ -45,7 +45,7 @@ namespace Renderer
 			throw std::runtime_error("DirectXHandler: Could not get swap chain pointer");
 		}
 
-		result = device->CreateRenderTargetView(backBufferPointer, NULL, backBufferRTV.GetAddressOf());
+		result = device->CreateRenderTargetView(backBufferPointer, NULL, &backBufferRTV);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating render target view ");
@@ -86,7 +86,7 @@ namespace Renderer
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 		//Create the depth stencil view
-		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, backBufferDSV.GetAddressOf());
+		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &backBufferDSV);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating Depth stencil view");
@@ -111,22 +111,22 @@ namespace Renderer
 
 		//Create rasterizer states
 		rasterDesc.CullMode = D3D11_CULL_BACK;
-		result = device->CreateRasterizerState(&rasterDesc, rsBack.GetAddressOf());
+		result = device->CreateRasterizerState(&rasterDesc, &rsBack);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state BACK");
 
 		rasterDesc.CullMode = D3D11_CULL_FRONT;
-		result = device->CreateRasterizerState(&rasterDesc, rsFront.GetAddressOf());
+		result = device->CreateRasterizerState(&rasterDesc, &rsFront);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state FRONT");
 
 		rasterDesc.CullMode = D3D11_CULL_NONE;
-		result = device->CreateRasterizerState(&rasterDesc, rsNone.GetAddressOf());
+		result = device->CreateRasterizerState(&rasterDesc, &rsNone);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state NONE");
 
 		rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
-		result = device->CreateRasterizerState(&rasterDesc, rsWireframe.GetAddressOf());
+		result = device->CreateRasterizerState(&rasterDesc, &rsWireframe);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME");
 
@@ -150,7 +150,7 @@ namespace Renderer
 		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 		//Create depth enable
-		result = device->CreateDepthStencilState(&depthStencilDesc, depthEnable.GetAddressOf());
+		result = device->CreateDepthStencilState(&depthStencilDesc, &depthEnable);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating depth stencil ENABLE");
@@ -159,7 +159,7 @@ namespace Renderer
 		//Create depth disable
 		depthStencilDesc.DepthEnable = false;
 
-		result = device->CreateDepthStencilState(&depthStencilDesc, depthDisable.GetAddressOf());
+		result = device->CreateDepthStencilState(&depthStencilDesc, &depthDisable);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating depth stencil DISABLE");
@@ -177,7 +177,7 @@ namespace Renderer
 		omDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-		result = device->CreateBlendState(&omDesc, blendEnable.GetAddressOf());
+		result = device->CreateBlendState(&omDesc, &blendEnable);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating blend ENABLE");
@@ -186,7 +186,7 @@ namespace Renderer
 		//Create blend disable
 		omDesc.RenderTarget[0].BlendEnable = false;
 
-		result = device->CreateBlendState(&omDesc, blendDisable.GetAddressOf());
+		result = device->CreateBlendState(&omDesc, &blendDisable);
 		if (FAILED(result))
 		{
 			throw std::runtime_error("DirectXHandler: Error creating blend DISABLE");
@@ -202,9 +202,10 @@ namespace Renderer
 		viewport.TopLeftY = 0.0f;
 
 
-		deviceContext->RSSetState(rsBack.Get());
-		deviceContext->OMSetDepthStencilState(depthEnable.Get(), 1);
+		deviceContext->RSSetState(rsBack);
+		deviceContext->OMSetDepthStencilState(depthEnable, 1);
 		deviceContext->RSSetViewports(1, &viewport);
+		deviceContext->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
 	}
 
 
@@ -213,38 +214,38 @@ namespace Renderer
 		swapChain->SetFullscreenState(false, NULL);
 	}
 
-	ComPtr<ID3D11Device> DirectXHandler::GetDevice()
+	ID3D11Device* DirectXHandler::GetDevice()
 	{
 		return device;
 	}
 
-	ComPtr<ID3D11DeviceContext> DirectXHandler::GetDeviceContext()
+	ID3D11DeviceContext* DirectXHandler::GetDeviceContext()
 	{
 		return deviceContext;
 	}
 
-	void DirectXHandler::SetCullingState(CullingState state)
+	void DirectXHandler::SetRasterState(RasterState state)
 	{
 		switch (state)
 		{
-		case Renderer::DirectXHandler::CullingState::BACK:
+		case Renderer::DirectXHandler::RasterState::BACK:
 		{
-			deviceContext->RSSetState(rsBack.Get());
+			deviceContext->RSSetState(rsBack);
 			break;
 		}
-		case Renderer::DirectXHandler::CullingState::FRONT:
+		case Renderer::DirectXHandler::RasterState::FRONT:
 		{
-			deviceContext->RSSetState(rsFront.Get());
+			deviceContext->RSSetState(rsFront);
 			break;
 		}
-		case Renderer::DirectXHandler::CullingState::NONE:
+		case Renderer::DirectXHandler::RasterState::NONE:
 		{
-			deviceContext->RSSetState(rsNone.Get());
+			deviceContext->RSSetState(rsNone);
 			break;
 		}
-		case Renderer::DirectXHandler::CullingState::WIREFRAME:
+		case Renderer::DirectXHandler::RasterState::WIREFRAME:
 		{
-			deviceContext->RSSetState(rsWireframe.Get());
+			deviceContext->RSSetState(rsWireframe);
 			break;
 		}
 		default:
@@ -260,12 +261,12 @@ namespace Renderer
 		{
 		case Renderer::DirectXHandler::BlendState::ENABLE:
 		{
-			deviceContext->OMSetBlendState(blendEnable.Get(), factor, 0xffffffff);
+			deviceContext->OMSetBlendState(blendEnable, factor, 0xffffffff);
 			break;
 		}
 		case Renderer::DirectXHandler::BlendState::DISABLE:
 		{
-			deviceContext->OMSetBlendState(blendDisable.Get(), factor, 0xffffffff);
+			deviceContext->OMSetBlendState(blendDisable, factor, 0xffffffff);
 			break;
 		}
 		default:
@@ -276,8 +277,13 @@ namespace Renderer
 	void DirectXHandler::BeginScene(float red, float green, float blue, float alpha)
 	{
 		float color[] = { red, green, blue, alpha };
-		deviceContext->ClearRenderTargetView(backBufferRTV.Get(), color);
-		deviceContext->ClearDepthStencilView(backBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		deviceContext->ClearRenderTargetView(backBufferRTV, color);
+		deviceContext->ClearDepthStencilView(backBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		deviceContext->RSSetState(rsBack);
+		deviceContext->OMSetDepthStencilState(depthEnable, 1);
+		deviceContext->RSSetViewports(1, &viewport);
+		deviceContext->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
 	}
 
 	void DirectXHandler::EndScene()

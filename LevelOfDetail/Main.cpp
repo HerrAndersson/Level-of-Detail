@@ -9,7 +9,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 	try
 	{
-		srand(time(0));
+		srand((unsigned int)time(0));
 		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 		LevelOfDetail sample(SCREEN_WIDTH, SCREEN_HEIGHT, L"D3D11 - LevelOfDetail");
 		return Win32Application::Run(&sample, hInstance, nCmdShow);

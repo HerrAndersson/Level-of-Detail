@@ -12,10 +12,10 @@ void LevelOfDetail::OnInit()
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
 
-	camera.Init({ 0.0f, 0.0f, 1500.0f });
-	camera.SetMoveSpeed(250.0f);
+	camera.Init({ 0.0f, 0.0f, 0.0f });
+	camera.SetMoveSpeed(50.0f);
 
-	projectionMatrix = camera.GetProjectionMatrix(XM_PIDIV2, SCREEN_WIDTH / SCREEN_HEIGHT);
+	projectionMatrix = camera.GetProjectionMatrix(XM_PIDIV2, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 	LoadPipelineObjects();
 	LoadAssets();
@@ -36,36 +36,6 @@ void LevelOfDetail::LoadPipelineObjects()
 	UINT compileFlags = 0;
 #endif;
 
-
-
-	//Temp -----------------------
-	float left = -10.0f;
-	float right = 10.0f;
-	float top = 10.0f;
-	float bottom = -10.0f;
-
-	SimpleVertex quad[] =
-	{ 
-		XMFLOAT3(left, top, -10.0f),
-		XMFLOAT3(right, bottom, -10.0f),
-		XMFLOAT3(left, bottom, -10.0f),
-		XMFLOAT3(left, top, 10.0f),
-		XMFLOAT3(right, top, 10.0f),
-		XMFLOAT3(right, bottom, 10.0f)
-	};
-
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(SimpleVertex) * 6;
-
-	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = quad;
-	HRESULT result = deviceRef->CreateBuffer(&bufferDesc, &data, &vertexBuffer);
-	//-----------------------
-
-
 	//Create shaders
 	D3D11_INPUT_ELEMENT_DESC posTexNormInputDesc[] =
 	{
@@ -85,7 +55,7 @@ void LevelOfDetail::LoadPipelineObjects()
 
 
 	//Initialize constant buffers
-	//HRESULT result;
+	HRESULT result;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -107,7 +77,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	//Set initial states and shaders
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
-	deviceContextRef->PSSetShader(defaultPS.Get(), nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -158,30 +128,26 @@ void LevelOfDetail::OnUpdate()
 void LevelOfDetail::OnRender()
 {
 	dx->BeginScene(0.012f, 0.1f, 0.01f, 1);
-
 	matrix4x4 view = camera.GetViewMatrix();
-
 	SetCBPerFrame(view, projectionMatrix);
 
-	//RenderObject* object = am.GetRenderObject(0);
+	RenderObject* object = am.GetRenderObject(0);
 
-	UINT32 vertexSize = sizeof(SimpleVertex);
+	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
-	deviceContextRef->IASetVertexBuffers(0, 1, &vertexBuffer, &vertexSize, &offset);
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->model->vertexBuffer, &vertexSize, &offset);
 
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
-
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
-	deviceContextRef->PSSetShader(defaultPS.Get(), nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		matrix4x4 world = XMMatrixTranslation((rand() % 200) - 100, (rand() % 200) - 100, (rand() % 200) - 100);
+		matrix4x4 world = XMMatrixScaling(2, 2, 2) * XMMatrixTranslation(i*3, 0, i*3);
 		SetCBPerObject(world);
-		deviceContextRef->Draw(6, 0);
+		deviceContextRef->Draw(object->model->vertexBufferSize, 0);
 	}
 
 	dx->EndScene();

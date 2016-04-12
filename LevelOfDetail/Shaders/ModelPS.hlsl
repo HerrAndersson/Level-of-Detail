@@ -14,7 +14,8 @@ struct VS_OUT
 
 float4 main(VS_OUT input) : SV_TARGET
 {
-	float4 color = diffuse.Sample(samplerWrap, input.uv);
+	return float4(0.2f, 0.4f, 0.2f, 1.0f);
+	//float4 color = diffuse.Sample(samplerWrap, input.uv);
 
-	return float4(color.xyz, 1.0f);
+	//return float4(color.xyz, 1.0f);
 }

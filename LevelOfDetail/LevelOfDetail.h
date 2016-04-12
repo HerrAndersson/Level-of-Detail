@@ -27,19 +27,15 @@ private:
 
 	matrix4x4 projectionMatrix;
 
-	ComPtr<ID3D11Device> deviceRef;
-	ComPtr<ID3D11DeviceContext> deviceContextRef;
+	ID3D11Device* deviceRef;
+	ID3D11DeviceContext* deviceContextRef;
 
 	VertexShaderData* defaultVS;
-	ComPtr<ID3D11PixelShader> defaultPS;
-	ComPtr<ID3D11SamplerState> samplerWrap;
+	ID3D11PixelShader* defaultPS;
+	ID3D11SamplerState* samplerWrap;
 
 	ID3D11Buffer* cbPerObject;
 	ID3D11Buffer* cbPerFrame;
-
-
-	//TEmp
-	ID3D11Buffer* vertexBuffer;
 
 	void LoadAssets();
 	void LoadPipelineObjects();

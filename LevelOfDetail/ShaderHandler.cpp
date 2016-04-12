@@ -2,12 +2,12 @@
 
 namespace Renderer
 {
-	ComPtr<ID3D11SamplerState> ShaderHandler::CreateSamplerState(ComPtr<ID3D11Device> device, SamplerStates state)
+	ID3D11SamplerState* ShaderHandler::CreateSamplerState(ID3D11Device* device, SamplerStates state)
 	{
 		HRESULT result;
 		D3D11_SAMPLER_DESC samplerDesc;
 		ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-		ComPtr<ID3D11SamplerState> samplerState;
+		ID3D11SamplerState* samplerState;
 
 		switch (state)
 		{
@@ -67,7 +67,7 @@ namespace Renderer
 		return nullptr;
 	}
 
-	Renderer::VertexShaderData* ShaderHandler::CreateVertexShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize, UINT compileFlags)
+	Renderer::VertexShaderData* ShaderHandler::CreateVertexShader(ID3D11Device* device, const std::wstring& fileName, D3D11_INPUT_ELEMENT_DESC* inputDesc, int inputDescSize, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
@@ -107,12 +107,12 @@ namespace Renderer
 
 		return new VertexShaderData(vertexShader, inputLayout);
 	}
-	ComPtr<ID3D11HullShader> ShaderHandler::CreateHullShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
+	ID3D11HullShader* ShaderHandler::CreateHullShader(ID3D11Device* device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11HullShader> hullShader;
+		ID3D11HullShader* hullShader;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "hs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
@@ -140,12 +140,12 @@ namespace Renderer
 
 		return hullShader;
 	}
-	ComPtr<ID3D11GeometryShader> ShaderHandler::CreateGeometryShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
+	ID3D11GeometryShader* ShaderHandler::CreateGeometryShader(ID3D11Device* device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11GeometryShader> geometryShader;
+		ID3D11GeometryShader* geometryShader;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "gs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
@@ -173,12 +173,12 @@ namespace Renderer
 
 		return geometryShader;
 	}
-	ComPtr<ID3D11DomainShader> ShaderHandler::CreateDomainShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
+	ID3D11DomainShader* ShaderHandler::CreateDomainShader(ID3D11Device* device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11DomainShader> domainShader;
+		ID3D11DomainShader* domainShader;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ds_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
@@ -206,12 +206,12 @@ namespace Renderer
 
 		return domainShader;
 	}
-	ComPtr<ID3D11PixelShader> ShaderHandler::CreatePixelShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
+	ID3D11PixelShader* ShaderHandler::CreatePixelShader(ID3D11Device* device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11PixelShader> pixelShader;
+		ID3D11PixelShader* pixelShader;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "ps_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
@@ -239,12 +239,12 @@ namespace Renderer
 
 		return pixelShader;
 	}
-	ComPtr<ID3D11ComputeShader> ShaderHandler::CreateComputeShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)
+	ID3D11ComputeShader* ShaderHandler::CreateComputeShader(ID3D11Device* device, const std::wstring& fileName, UINT compileFlags)
 	{
 		HRESULT result;
 		ID3DBlob* errorMessage = nullptr;
 		ID3DBlob* shaderBuffer = nullptr;
-		ComPtr<ID3D11ComputeShader> computeShader;
+		ID3D11ComputeShader* computeShader;
 
 		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "cs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))

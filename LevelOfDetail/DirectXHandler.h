@@ -2,47 +2,44 @@
 
 #include "stdafx.h"
 
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "d3dcompiler.lib")
-
 namespace Renderer
 {
 	class DirectXHandler
 	{
 	private:
 
-		ComPtr<ID3D11RenderTargetView>	 backBufferRTV;
-		ComPtr<ID3D11DepthStencilView>	 backBufferDSV;
+		ID3D11RenderTargetView*	backBufferRTV;
+		ID3D11DepthStencilView*	backBufferDSV;
 		
-		ComPtr<IDXGISwapChain>		     swapChain;
-		ComPtr<ID3D11Device>			 device;
-		ComPtr<ID3D11DeviceContext>		 deviceContext;
+		IDXGISwapChain* swapChain;
+		ID3D11Device* device;
+		ID3D11DeviceContext* deviceContext;
 
-		D3D11_VIEWPORT					 viewport;
+		D3D11_VIEWPORT viewport;
 		
-		ComPtr<ID3D11DepthStencilState>	 depthEnable;
-		ComPtr<ID3D11DepthStencilState>	 depthDisable;
+		ID3D11DepthStencilState* depthEnable;
+		ID3D11DepthStencilState* depthDisable;
 		
-		ComPtr<ID3D11RasterizerState>	 rsBack;
-		ComPtr<ID3D11RasterizerState>	 rsFront;
-		ComPtr<ID3D11RasterizerState>	 rsNone;
-		ComPtr<ID3D11RasterizerState>	 rsWireframe;
+		ID3D11RasterizerState* rsBack;
+		ID3D11RasterizerState* rsFront;
+		ID3D11RasterizerState* rsNone;
+		ID3D11RasterizerState* rsWireframe;
 										 
-		ComPtr<ID3D11BlendState>		 blendEnable;
-		ComPtr<ID3D11BlendState>		 blendDisable;
+		ID3D11BlendState* blendEnable;
+		ID3D11BlendState* blendDisable;
 
 	public:
 
-		enum CullingState { BACK, FRONT, NONE, WIREFRAME };
+		enum RasterState { BACK, FRONT, NONE, WIREFRAME };
 		enum BlendState { ENABLE, DISABLE };
 
 		DirectXHandler(HWND hwnd);
 		~DirectXHandler();
 
-		ComPtr<ID3D11Device> GetDevice();
-		ComPtr<ID3D11DeviceContext> GetDeviceContext();
+		ID3D11Device* GetDevice();
+		ID3D11DeviceContext* GetDeviceContext();
 
-		void SetCullingState(CullingState state);
+		void SetRasterState(RasterState state);
 		void SetBlendState(BlendState state);
 
 		void BeginScene(float red, float green, float blue, float alpha);

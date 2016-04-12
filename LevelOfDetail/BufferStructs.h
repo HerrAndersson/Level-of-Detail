@@ -11,4 +11,6 @@ struct CBPerFrame
 struct CBPerObject
 {
 	XMMATRIX world;
+	XMFLOAT3 color;
+	float blendFactor;
 };

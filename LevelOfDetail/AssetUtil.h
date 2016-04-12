@@ -14,14 +14,9 @@ namespace AssetUtility
 {
 	struct Vertex
 	{
-		XMFLOAT3 position;
-		XMFLOAT2 uv;
-		XMFLOAT3 normal;
-	};
-
-	struct SimpleVertex
-	{
-		XMFLOAT3 position;
+		XMFLOAT3 position = { 0,0,0 };
+		XMFLOAT2 uv = { 0,0 };
+		XMFLOAT3 normal = { 0,0,0 };
 	};
 
 	struct Model 

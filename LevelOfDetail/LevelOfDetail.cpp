@@ -13,17 +13,21 @@ void LevelOfDetail::OnInit()
 	deviceContextRef = dx->GetDeviceContext();
 
 	camera.Init({ 0.0f, 0.0f, 0.0f });
-	camera.SetMoveSpeed(50.0f);
+	camera.SetMoveSpeed(10.0f);
 
 	projectionMatrix = camera.GetProjectionMatrix(XM_PIDIV2, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 	LoadPipelineObjects();
 	LoadAssets();
+
+
+	//dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
+	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ENABLE);
 }
 
 void LevelOfDetail::LoadAssets()
 {
-	am.LoadObject(deviceRef, MODEL_PATH + "cube.obj", TEXTURE_PATH + "sand.png");
+	am.LoadObject(deviceRef, MODEL_PATH + "bunny0.obj", TEXTURE_PATH + "sand.png");
 }
 
 void LevelOfDetail::LoadPipelineObjects()
@@ -31,7 +35,7 @@ void LevelOfDetail::LoadPipelineObjects()
 
 #if defined(_DEBUG)
 	// Enable better shader debugging with the graphics debugging tools
-	UINT compileFlags = 0; //D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_STRICTNESS;
+	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_STRICTNESS;
 #else
 	UINT compileFlags = 0;
 #endif;
@@ -46,13 +50,10 @@ void LevelOfDetail::LoadPipelineObjects()
 
 	int numElements = sizeof(posTexNormInputDesc) / sizeof(posTexNormInputDesc[0]);
 
-
-
 	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/ModelVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
 	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/ModelPS.hlsl", compileFlags);
 
 	samplerWrap = ShaderHandler::CreateSamplerState(deviceRef, SamplerStates::WRAP);
-
 
 	//Initialize constant buffers
 	HRESULT result;
@@ -82,7 +83,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void LevelOfDetail::SetCBPerObject(matrix4x4 world)
+void LevelOfDetail::SetCBPerObject(matrix world, float3 color, float blendFactor)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -94,12 +95,14 @@ void LevelOfDetail::SetCBPerObject(matrix4x4 world)
 
 	dataPtr = static_cast<CBPerObject*>(mappedResource.pData);
 	dataPtr->world = XMMatrixTranspose(world.ToSIMD());
+	dataPtr->color = color;
+	dataPtr->blendFactor = blendFactor;
 	deviceContextRef->Unmap(cbPerObject, 0);
 
 	deviceContextRef->VSSetConstantBuffers(1, 1, &cbPerObject);
 }
 
-void LevelOfDetail::SetCBPerFrame(matrix4x4 view, matrix4x4 projection)
+void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -128,7 +131,7 @@ void LevelOfDetail::OnUpdate()
 void LevelOfDetail::OnRender()
 {
 	dx->BeginScene(0.012f, 0.1f, 0.01f, 1);
-	matrix4x4 view = camera.GetViewMatrix();
+	matrix view = camera.GetViewMatrix();
 	SetCBPerFrame(view, projectionMatrix);
 
 	RenderObject* object = am.GetRenderObject(0);
@@ -145,8 +148,8 @@ void LevelOfDetail::OnRender()
 
 	for (int i = 0; i < 10; i++)
 	{
-		matrix4x4 world = XMMatrixScaling(2, 2, 2) * XMMatrixTranslation(i*3, 0, i*3);
-		SetCBPerObject(world);
+		matrix world = XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(i*3.0f, -1.0f, i*3.0f);
+		SetCBPerObject(world, float3((RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2), 0.5f);
 		deviceContextRef->Draw(object->model->vertexBufferSize, 0);
 	}
 
@@ -157,6 +160,11 @@ void LevelOfDetail::OnDestroy()
 {
 	delete dx;
 	delete defaultVS;
+
+	SAFE_RELEASE(defaultPS)
+	SAFE_RELEASE(samplerWrap)
+	SAFE_RELEASE(cbPerObject)
+	SAFE_RELEASE(cbPerFrame)
 }
 
 void LevelOfDetail::OnKeyDown(UINT8 key)

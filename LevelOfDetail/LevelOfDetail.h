@@ -25,7 +25,7 @@ private:
 	DirectXHandler* dx;
 	AssetManager am;
 
-	matrix4x4 projectionMatrix;
+	matrix projectionMatrix;
 
 	ID3D11Device* deviceRef;
 	ID3D11DeviceContext* deviceContextRef;
@@ -41,8 +41,8 @@ private:
 	void LoadPipelineObjects();
 	float RandomPercent();
 
-	void SetCBPerObject(matrix4x4 world);
-	void SetCBPerFrame(matrix4x4 view, matrix4x4 projection);
+	void SetCBPerObject(matrix world, float3 color, float blendFactor);
+	void SetCBPerFrame(matrix view, matrix projection);
 
 public:
 

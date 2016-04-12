@@ -212,6 +212,20 @@ namespace Renderer
 	DirectXHandler::~DirectXHandler()
 	{
 		swapChain->SetFullscreenState(false, NULL);
+
+		SAFE_RELEASE(backBufferRTV)
+		SAFE_RELEASE(backBufferDSV)
+		SAFE_RELEASE(swapChain)
+		SAFE_RELEASE(device)
+		SAFE_RELEASE(deviceContext)
+		SAFE_RELEASE(depthEnable)
+		SAFE_RELEASE(depthDisable)
+		SAFE_RELEASE(rsBack)
+		SAFE_RELEASE(rsFront)
+		SAFE_RELEASE(rsNone)
+		SAFE_RELEASE(rsWireframe)
+		SAFE_RELEASE(blendEnable)
+		SAFE_RELEASE(blendDisable)
 	}
 
 	ID3D11Device* DirectXHandler::GetDevice()
@@ -279,11 +293,6 @@ namespace Renderer
 		float color[] = { red, green, blue, alpha };
 		deviceContext->ClearRenderTargetView(backBufferRTV, color);
 		deviceContext->ClearDepthStencilView(backBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-		deviceContext->RSSetState(rsBack);
-		deviceContext->OMSetDepthStencilState(depthEnable, 1);
-		deviceContext->RSSetViewports(1, &viewport);
-		deviceContext->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
 	}
 
 	void DirectXHandler::EndScene()

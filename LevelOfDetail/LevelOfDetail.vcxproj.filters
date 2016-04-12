@@ -95,6 +95,9 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{a1d9ef40-0d70-4ff6-8329-60fa1d03318d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AssetHandling\Assets">
+      <UniqueIdentifier>{056ecbdd-c03c-431a-a7fd-6b9ba548bb44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\ModelPS.hlsl">
@@ -103,5 +106,19 @@
     <FxCompile Include="Shaders\ModelVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Assets\Models\armadillo0.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\bunny0.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\dragon0.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\cube.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
   </ItemGroup>
 </Project>

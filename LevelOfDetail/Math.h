@@ -287,5 +287,5 @@ namespace Math
 	typedef Float3 float3;
 	typedef Float4 float4;
 	typedef Float3x3 matrix3x3;
-	typedef Float4x4 matrix4x4;
+	typedef Float4x4 matrix;
 }

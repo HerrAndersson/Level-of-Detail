@@ -17,7 +17,7 @@ SimpleCamera::SimpleCamera():
 	m_position(m_initialPosition),
 	m_yaw(XM_PI),
 	m_pitch(0.0f),
-	m_lookDirection(0, 0, -1),
+	m_lookDirection(0, 0, 1),
 	m_upDirection(0, 1, 0),
 	m_moveSpeed(20.0f),
 	m_turnSpeed(XM_PIDIV2)
@@ -46,7 +46,7 @@ void SimpleCamera::Reset()
 	m_position = m_initialPosition;
 	m_yaw = XM_PI;
 	m_pitch = 0.0f;
-	m_lookDirection = { 0, 0, -1 };
+	m_lookDirection = { 0, 0, 1 };
 }
 
 void SimpleCamera::Update(float elapsedSeconds)
@@ -58,9 +58,9 @@ void SimpleCamera::Update(float elapsedSeconds)
 		move.x -= 1.0f;
 	if (m_keysPressed.d)
 		move.x += 1.0f;
-	if (m_keysPressed.w)
-		move.z -= 1.0f;
 	if (m_keysPressed.s)
+		move.z -= 1.0f;
+	if (m_keysPressed.w)
 		move.z += 1.0f;
 
 	if (fabs(move.x) > 0.1f && fabs(move.z) > 0.1f)
@@ -94,9 +94,9 @@ void SimpleCamera::Update(float elapsedSeconds)
 
 	// Determine the look direction.
 	float r = cosf(m_pitch);
-	m_lookDirection.x = r * sinf(m_yaw);
-	m_lookDirection.y = sinf(m_pitch);
-	m_lookDirection.z = r * cosf(m_yaw);
+	m_lookDirection.x = -r * sinf(m_yaw);
+	m_lookDirection.y = -sinf(m_pitch);
+	m_lookDirection.z = -r * cosf(m_yaw);
 }
 
 XMMATRIX SimpleCamera::GetViewMatrix()

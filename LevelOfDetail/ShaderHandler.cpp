@@ -101,6 +101,10 @@ namespace Renderer
 		{
 			throw std::runtime_error("ShaderHandler::CreateVertexShader: Error creating input layout.");
 		}
+
+		SAFE_RELEASE(errorMessage);
+		SAFE_RELEASE(shaderBuffer);
+
 		return new VertexShaderData(vertexShader, inputLayout);
 	}
 	ComPtr<ID3D11HullShader> ShaderHandler::CreateHullShader(ComPtr<ID3D11Device> device, const std::wstring& fileName, UINT compileFlags)

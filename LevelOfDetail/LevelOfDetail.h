@@ -7,6 +7,7 @@
 #include "DirectXHandler.h"
 #include "ShaderHandler.h"
 #include "AssetManager.h"
+#include "BufferStructs.h"
 
 using namespace DirectX;
 using namespace Math;
@@ -19,17 +20,6 @@ class LevelOfDetail : public DXSample
 
 private:
 
-	struct CBPerFrame
-	{
-		matrix4x4 view;
-		matrix4x4 projection;
-	};
-
-	struct CBPerObject
-	{
-		matrix4x4 world;
-	};
-
 	SimpleCamera camera;
 	StepTimer timer;
 	DirectXHandler* dx;
@@ -37,13 +27,26 @@ private:
 
 	matrix4x4 projectionMatrix;
 
+	ComPtr<ID3D11Device> deviceRef;
+	ComPtr<ID3D11DeviceContext> deviceContextRef;
+
 	VertexShaderData* defaultVS;
 	ComPtr<ID3D11PixelShader> defaultPS;
 	ComPtr<ID3D11SamplerState> samplerWrap;
 
+	ID3D11Buffer* cbPerObject;
+	ID3D11Buffer* cbPerFrame;
+
+
+	//TEmp
+	ID3D11Buffer* vertexBuffer;
+
 	void LoadAssets();
-	void LoadShaders();
+	void LoadPipelineObjects();
 	float RandomPercent();
+
+	void SetCBPerObject(matrix4x4 world);
+	void SetCBPerFrame(matrix4x4 view, matrix4x4 projection);
 
 public:
 

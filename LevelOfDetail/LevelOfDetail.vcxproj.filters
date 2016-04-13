@@ -33,6 +33,9 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="MouseHandler.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LevelOfDetail.h" />
@@ -81,6 +84,12 @@
     <ClInclude Include="BufferStructs.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="MouseHandler.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.h">
+      <Filter>Core\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -97,6 +106,9 @@
     </Filter>
     <Filter Include="AssetHandling\Assets">
       <UniqueIdentifier>{056ecbdd-c03c-431a-a7fd-6b9ba548bb44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Debug">
+      <UniqueIdentifier>{62934814-fc9d-4eff-8044-4d7441f9b3c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

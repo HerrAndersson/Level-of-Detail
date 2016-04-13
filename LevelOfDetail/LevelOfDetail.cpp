@@ -4,6 +4,10 @@
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name)
 {
+	for (int i = 0; i < 100; i++)
+	{
+		colors[i] = float3((RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2);
+	}
 }
 
 void LevelOfDetail::OnInit()
@@ -12,8 +16,9 @@ void LevelOfDetail::OnInit()
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
 
-	camera.Init({ 0.0f, 0.0f, 0.0f });
+	camera.Init({ 0.0f, 0.0f, 0.0f }, SimpleCamera::CameraMode::MOUSE);
 	camera.SetMoveSpeed(10.0f);
+	camera.SetTurnSpeed(XM_PI);
 
 	projectionMatrix = camera.GetProjectionMatrix(XM_PIDIV2, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
@@ -123,14 +128,21 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 //Update frame-based values
 void LevelOfDetail::OnUpdate()
 {
+	SetCursorPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 	timer.Tick(NULL);
-	camera.Update(static_cast<float>(timer.GetElapsedSeconds()));
+	mouse.Update();
+
+	float2 difference;
+	bool moved = mouse.MouseMoved(difference);
+
+	camera.Update(static_cast<float>(timer.GetElapsedSeconds()), moved, difference);
+
 }
 
 //Render the scene
 void LevelOfDetail::OnRender()
 {
-	dx->BeginScene(0.012f, 0.1f, 0.01f, 1);
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	matrix view = camera.GetViewMatrix();
 	SetCBPerFrame(view, projectionMatrix);
 
@@ -140,16 +152,10 @@ void LevelOfDetail::OnRender()
 	UINT32 offset = 0;
 	deviceContextRef->IASetVertexBuffers(0, 1, &object->model->vertexBuffer, &vertexSize, &offset);
 
-	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
-	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
-	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
-	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
-
 	for (int i = 0; i < 10; i++)
 	{
-		matrix world = XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMMatrixTranslation(i*3.0f, -1.0f, i*3.0f);
-		SetCBPerObject(world, float3((RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2), 0.5f);
+		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixTranslation(i*3.0f, -1.0f, i*3.0f);
+		SetCBPerObject(world, colors[i], 1.0f);
 		deviceContextRef->Draw(object->model->vertexBufferSize, 0);
 	}
 

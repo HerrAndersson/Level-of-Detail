@@ -44,11 +44,12 @@ using Microsoft::WRL::ComPtr;
 using std::string;
 using std::wstring;
 
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-
-const string ASSET_PATH = "Assets/";
-const string MODEL_PATH = ASSET_PATH + "Models/";
-const string TEXTURE_PATH = ASSET_PATH + "Textures/";
+static const int SCREEN_WIDTH = 1280;
+static const int SCREEN_HEIGHT = 720;
+static const string ASSET_PATH = "Assets/";
+static const string MODEL_PATH = ASSET_PATH + "Models/";
+static const string TEXTURE_PATH = ASSET_PATH + "Textures/";
+static const float F_EPSILON = std::numeric_limits<float>::epsilon();
+static const float F_MAX = (std::numeric_limits<float>::max)();
 
 

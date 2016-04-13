@@ -8,6 +8,7 @@
 #include "ShaderHandler.h"
 #include "AssetManager.h"
 #include "BufferStructs.h"
+#include "MouseHandler.h"
 
 using namespace DirectX;
 using namespace Math;
@@ -20,10 +21,13 @@ class LevelOfDetail : public DXSample
 
 private:
 
+	float3 colors[100];
+
 	SimpleCamera camera;
 	StepTimer timer;
 	DirectXHandler* dx;
 	AssetManager am;
+	MouseHandler mouse;
 
 	matrix projectionMatrix;
 

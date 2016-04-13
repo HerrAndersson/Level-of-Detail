@@ -105,9 +105,11 @@
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="AssetUtil.h" />
     <ClInclude Include="BufferStructs.h" />
+    <ClInclude Include="Console.h" />
     <ClInclude Include="DirectXHandler.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Math.h" />
+    <ClInclude Include="MouseHandler.h" />
     <ClInclude Include="ShaderHandler.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="WICTextureLoader.h" />
@@ -124,6 +126,7 @@
     <ClCompile Include="DirectXHandler.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="Math.cpp" />
+    <ClCompile Include="MouseHandler.cpp" />
     <ClCompile Include="ShaderHandler.cpp" />
     <ClCompile Include="WICTextureLoader.cpp" />
     <ClCompile Include="Win32Application.cpp" />

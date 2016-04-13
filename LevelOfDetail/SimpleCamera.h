@@ -1,35 +1,15 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
 #pragma once
+#include "stdafx.h"
 
 using namespace DirectX;
+using namespace Math;
 
 class SimpleCamera
 {
 public:
-	SimpleCamera();
-
-	void Init(XMFLOAT3 position);
-	void Update(float elapsedSeconds);
-	XMMATRIX GetViewMatrix();
-	XMMATRIX GetProjectionMatrix(float fov, float aspectRatio, float nearPlane = 1.0f, float farPlane = 1000.0f);
-	void SetMoveSpeed(float unitsPerSecond);
-	void SetTurnSpeed(float radiansPerSecond);
-
-	void OnKeyDown(WPARAM key);
-	void OnKeyUp(WPARAM key);
+	enum CameraMode { MOUSE, ARROWS };
 
 private:
-	void Reset();
 
 	struct KeysPressed
 	{
@@ -44,14 +24,38 @@ private:
 		bool down;
 	};
 
-	XMFLOAT3 m_initialPosition;
-	XMFLOAT3 m_position;
-	float m_yaw;				// Relative to the +z axis.
-	float m_pitch;				// Relative to the xz plane.
-	XMFLOAT3 m_lookDirection;
-	XMFLOAT3 m_upDirection;
-	float m_moveSpeed;			// Speed at which the camera moves, in units per second.
-	float m_turnSpeed;			// Speed at which the camera turns, in radians per second.
+	CameraMode cameraMode;
 
-	KeysPressed m_keysPressed;
+	float3 initialPosition;
+	float3 position;
+
+	float yaw;					// Relative to the +z axis.
+	float pitch;				// Relative to the xz plane.
+
+	float3 lookDirection;
+	float3 upDirection;
+
+	float moveSpeed;			// Speed at which the camera moves, in units per second.
+	float turnSpeed;			// Speed at which the camera turns, in radians per second.
+
+	KeysPressed keysPressed;
+
+	void Reset();
+
+public:
+
+	SimpleCamera();
+	~SimpleCamera();
+
+	void Init(XMFLOAT3 position, CameraMode mode);
+	void Update(float elapsedSeconds, bool mouseMoved, float2 difference);
+
+	XMMATRIX GetViewMatrix();
+	XMMATRIX GetProjectionMatrix(float fov, float aspectRatio, float nearPlane = 1.0f, float farPlane = 1000.0f);
+
+	void SetMoveSpeed(float unitsPerSecond);
+	void SetTurnSpeed(float radiansPerSecond);
+
+	void OnKeyDown(WPARAM key);
+	void OnKeyUp(WPARAM key);
 };

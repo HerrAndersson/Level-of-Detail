@@ -10,7 +10,7 @@ SimpleCamera::SimpleCamera():
 	upDirection(0, 1, 0),
 	moveSpeed(20.0f),
 	turnSpeed(XM_PIDIV2),
-	cameraMode(MOUSE)
+	cameraMode(ARROWS)
 {
 	ZeroMemory(&keysPressed, sizeof(keysPressed));
 }
@@ -47,6 +47,7 @@ void SimpleCamera::Reset()
 
 void SimpleCamera::Update(float elapsedSeconds, bool mouseMoved, float2 difference)
 {
+
 	// Calculate the move vector in camera space.
 	float3 move(0, 0, 0);
 
@@ -69,23 +70,14 @@ void SimpleCamera::Update(float elapsedSeconds, bool mouseMoved, float2 differen
 	float moveInterval = moveSpeed * elapsedSeconds;
 	float rotateInterval = turnSpeed * elapsedSeconds;
 
-	if (cameraMode == ARROWS)
-	{
-		if (keysPressed.left)
-			yaw -= rotateInterval;
-		if (keysPressed.right)
-			yaw += rotateInterval;
-		if (keysPressed.up)
-			pitch += rotateInterval;
-		if (keysPressed.down)
-			pitch -= rotateInterval;
-	}
-	else if(mouseMoved)
-	{
-		yaw += difference.x * rotateInterval;
-		pitch += difference.y * rotateInterval;
-		printf(string(std::to_string(difference.x) + "  " + std::to_string(difference.y) + "\n").c_str());
-	}
+	if (keysPressed.left)
+		yaw -= rotateInterval;
+	if (keysPressed.right)
+		yaw += rotateInterval;
+	if (keysPressed.up)
+		pitch += rotateInterval;
+	if (keysPressed.down)
+		pitch -= rotateInterval;
 
 	// Prevent looking too far up or down.
 	pitch = min(pitch, XM_PIDIV4);
@@ -98,10 +90,10 @@ void SimpleCamera::Update(float elapsedSeconds, bool mouseMoved, float2 differen
 	position.z += z * moveInterval;
 
 	// Determine the look direction.
-	float r = cosf(pitch);
-	lookDirection.x = -r * sinf(yaw);
-	lookDirection.y = -sinf(pitch);
-	lookDirection.z = -r * cosf(yaw);
+	float r = -cosf(pitch);
+	lookDirection.x = r * sinf(yaw);
+	lookDirection.y = sinf(pitch);
+	lookDirection.z = r * cosf(yaw);
 }
 
 XMMATRIX SimpleCamera::GetViewMatrix()

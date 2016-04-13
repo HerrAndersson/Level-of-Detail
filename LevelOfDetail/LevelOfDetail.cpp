@@ -128,7 +128,7 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 //Update frame-based values
 void LevelOfDetail::OnUpdate()
 {
-	SetCursorPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	//SetCursorPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 	timer.Tick(NULL);
 	mouse.Update();
 

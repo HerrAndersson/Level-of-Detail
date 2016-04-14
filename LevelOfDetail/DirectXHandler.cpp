@@ -33,23 +33,17 @@ namespace Renderer
 		D3D_FEATURE_LEVEL featLvl = D3D_FEATURE_LEVEL_11_0;
 		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating swap chain");
-		}
 
 		//Get back buffer pointer and get render target view with it
 		ID3D11Texture2D* backBufferPointer;
 		result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPointer);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Could not get swap chain pointer");
-		}
 
-		result = device->CreateRenderTargetView(backBufferPointer, NULL, &backBufferRTV);
+		result = device->CreateRenderTargetView(backBufferPointer, NULL, &rtvBackBuffer);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating render target view ");
-		}
 
 		backBufferPointer->Release();
 		backBufferPointer = nullptr;
@@ -74,9 +68,7 @@ namespace Renderer
 		// Create the texture for the depth buffer
 		result = device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating Depth texture");
-		}
 
 		//Stencil view description.
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
@@ -86,11 +78,9 @@ namespace Renderer
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 		//Create the depth stencil view
-		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &backBufferDSV);
+		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &dsvBackBuffer);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating Depth stencil view");
-		}
 
 		SAFE_RELEASE(depthStencilBuffer);
 
@@ -149,21 +139,17 @@ namespace Renderer
 		depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-		//Create depth enable
-		result = device->CreateDepthStencilState(&depthStencilDesc, &depthEnable);
+		//Create depth test enable
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
 		if (FAILED(result))
-		{
-			throw std::runtime_error("DirectXHandler: Error creating depth stencil ENABLE");
-		}
+			throw std::runtime_error("DirectXHandler: Error creating depth test ENABLE");
 
-		//Create depth disable
-		depthStencilDesc.DepthEnable = false;
-
-		result = device->CreateDepthStencilState(&depthStencilDesc, &depthDisable);
+		//Create depth test enable write disable
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
 		if (FAILED(result))
-		{
-			throw std::runtime_error("DirectXHandler: Error creating depth stencil DISABLE");
-		}
+			throw std::runtime_error("DirectXHandler: Error creating depth write DISABLE");
+
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////
 		D3D11_BLEND_DESC omDesc;
@@ -177,20 +163,15 @@ namespace Renderer
 		omDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-		result = device->CreateBlendState(&omDesc, &blendEnable);
+		result = device->CreateBlendState(&omDesc, &bsAdditiveAlphaEnable);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating blend ENABLE");
-		}
 
 		//Create blend disable
 		omDesc.RenderTarget[0].BlendEnable = false;
-
-		result = device->CreateBlendState(&omDesc, &blendDisable);
+		result = device->CreateBlendState(&omDesc, &bsDisable);
 		if (FAILED(result))
-		{
 			throw std::runtime_error("DirectXHandler: Error creating blend DISABLE");
-		}
 
 		//////////////////////////////////////////////////////////// Other ////////////////////////////////////////////////////////////
 		//Set up viewport
@@ -201,11 +182,10 @@ namespace Renderer
 		viewport.TopLeftX = 0.0f;
 		viewport.TopLeftY = 0.0f;
 
-
 		deviceContext->RSSetState(rsBack);
-		deviceContext->OMSetDepthStencilState(depthEnable, 0);
+		deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 0);
 		deviceContext->RSSetViewports(1, &viewport);
-		deviceContext->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
+		deviceContext->OMSetRenderTargets(1, &rtvBackBuffer, dsvBackBuffer);
 	}
 
 
@@ -213,19 +193,19 @@ namespace Renderer
 	{
 		swapChain->SetFullscreenState(false, NULL);
 
-		SAFE_RELEASE(backBufferRTV)
-		SAFE_RELEASE(backBufferDSV)
-		SAFE_RELEASE(swapChain)
-		SAFE_RELEASE(device)
-		SAFE_RELEASE(deviceContext)
-		SAFE_RELEASE(depthEnable)
-		SAFE_RELEASE(depthDisable)
-		SAFE_RELEASE(rsBack)
-		SAFE_RELEASE(rsFront)
-		SAFE_RELEASE(rsNone)
-		SAFE_RELEASE(rsWireframe)
-		SAFE_RELEASE(blendEnable)
-		SAFE_RELEASE(blendDisable)
+		SAFE_RELEASE(rtvBackBuffer);
+		SAFE_RELEASE(dsvBackBuffer);
+		SAFE_RELEASE(swapChain);
+		SAFE_RELEASE(device);
+		SAFE_RELEASE(deviceContext);
+		SAFE_RELEASE(dss_TestE_WriteE);
+		SAFE_RELEASE(dss_TestE_WriteD);
+		SAFE_RELEASE(rsBack);
+		SAFE_RELEASE(rsFront);
+		SAFE_RELEASE(rsNone);
+		SAFE_RELEASE(rsWireframe);
+		SAFE_RELEASE(bsAdditiveAlphaEnable);
+		SAFE_RELEASE(bsDisable);
 	}
 
 	ID3D11Device* DirectXHandler::GetDevice()
@@ -267,20 +247,20 @@ namespace Renderer
 		}
 	}
 
-	void DirectXHandler::SetBlendState(State state)
+	void DirectXHandler::SetBlendState(BlendState state)
 	{
 		FLOAT factor[] = { 0,0,0,0 };
 		//Passing NULL as factor gives a default value of (1,1,1,1)
 		switch (state)
 		{
-		case Renderer::DirectXHandler::State::ENABLED:
+		case Renderer::DirectXHandler::BlendState::ADDITIVE_ALPHA:
 		{
-			deviceContext->OMSetBlendState(blendEnable, factor, 0xffffffff);
+			deviceContext->OMSetBlendState(bsAdditiveAlphaEnable, factor, 0xffffffff);
 			break;
 		}
-		case Renderer::DirectXHandler::State::DISABLED:
+		case Renderer::DirectXHandler::BlendState::DISABLED:
 		{
-			deviceContext->OMSetBlendState(blendDisable, factor, 0xffffffff);
+			deviceContext->OMSetBlendState(bsDisable, factor, 0xffffffff);
 			break;
 		}
 		default:
@@ -288,17 +268,17 @@ namespace Renderer
 		}
 	}
 
-	void DirectXHandler::SetDepthState(State state)
+	void DirectXHandler::SetDepthState(DepthState state)
 	{
 		switch (state)
 		{
-		case Renderer::DirectXHandler::State::ENABLED:
+		case Renderer::DirectXHandler::DepthState::TEST_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(depthEnable, 0);
+			deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 0);
 		}
-		case Renderer::DirectXHandler::State::DISABLED:
+		case Renderer::DirectXHandler::DepthState::TEST_NO_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(depthDisable, 0);
+			deviceContext->OMSetDepthStencilState(dss_TestE_WriteD, 0);
 			break;
 		}
 		default:
@@ -309,8 +289,8 @@ namespace Renderer
 	void DirectXHandler::BeginScene(float red, float green, float blue, float alpha)
 	{
 		float color[] = { red, green, blue, alpha };
-		deviceContext->ClearRenderTargetView(backBufferRTV, color);
-		deviceContext->ClearDepthStencilView(backBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		deviceContext->ClearRenderTargetView(rtvBackBuffer, color);
+		deviceContext->ClearDepthStencilView(dsvBackBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
 	void DirectXHandler::EndScene()

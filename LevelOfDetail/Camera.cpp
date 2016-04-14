@@ -10,7 +10,7 @@ Camera::Camera():
 	upDirection(0, 1, 0),
 	moveSpeed(20.0f),
 	turnSpeed(XM_PIDIV2),
-	cameraMode(ARROWS)
+	cameraMode(KEYBOARD)
 {
 	ZeroMemory(&keysPressed, sizeof(keysPressed));
 }
@@ -36,18 +36,12 @@ void Camera::Reset()
 
 void Camera::Update(float elapsedSeconds, float totalSeconds, bool mouseMoved, float2 difference)
 {
-	if (cameraMode == ARROWS)
+	if (cameraMode == KEYBOARD)
 		UpdateArrowsMode(elapsedSeconds);
 	else if (cameraMode == MOUSE)
 		UpdateMouseMode(elapsedSeconds, mouseMoved, difference);
 	else if (cameraMode == SCRIPTED)
 		UpdateScriptedMode(totalSeconds);
-
-	if (abs(difference.x) > F_EPSILON + 1.0f && abs(difference.y) > F_EPSILON + 1.0f)
-	{
-		printf((std::to_string(difference.x) + " " + std::to_string(difference.y)).c_str());
-		printf("\n");
-	}
 }
 
 void Camera::UpdateScriptedMode(float totalSeconds)

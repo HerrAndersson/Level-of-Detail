@@ -19,9 +19,9 @@ void MouseHandler::Update()
 	GetClientRect(hwnd, &rect);
 	MapWindowPoints(hwnd, GetParent(hwnd), (LPPOINT)&rect, 2);
 	
-	float sx = rect.left + rect.right/2;
-	float sy = rect.top + rect.bottom/2;
-	SetCursorPos(sx, sy);
+	float sx = float(rect.left + rect.right) / 2.0f;
+	float sy = float(rect.top + rect.bottom) / 2.0f;
+	SetCursorPos((int)sx, (int)sy);
 
 	float dx = point.x - sx;
 	float dy = point.y - sy;

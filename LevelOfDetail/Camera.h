@@ -7,7 +7,7 @@ using namespace Math;
 class Camera
 {
 public:
-	enum CameraMode { MOUSE, ARROWS, SCRIPTED };
+	enum CameraMode { MOUSE, KEYBOARD, SCRIPTED };
 
 private:
 

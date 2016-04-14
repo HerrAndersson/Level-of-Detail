@@ -26,7 +26,7 @@ void LevelOfDetail::OnInit()
 	LoadAssets();
 
 	//dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
-	dx->SetBlendState(Renderer::DirectXHandler::State::ENABLED);
+	dx->SetBlendState(Renderer::DirectXHandler::BlendState::DISABLED);
 }
 
 void LevelOfDetail::OnDestroy()
@@ -152,7 +152,7 @@ void LevelOfDetail::OnUpdate()
 
 	float2 difference;
 	bool moved = false;
-	if (camera.GetCameraMode() != Camera::CameraMode::SCRIPTED)
+	if (camera.GetCameraMode() == Camera::CameraMode::MOUSE)
 	{
 		UpdateMouse();
 		moved = mouse.MouseMoved(difference);
@@ -196,7 +196,7 @@ void LevelOfDetail::RenderNormal()
 	//Render
 	for (int i = 0; i < 50; i++)
 	{
-		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixTranslation(-25 + i*4, 0, int(50 * colors[i].y)%(int)(colors[i].x*100 + 1));
+		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixTranslation(-25.0f + i*4.0f, 0, float(int(50.0f * colors[i].y)%(int)(colors[i].x*100.0f + 1.0f)));
 		SetCBPerObject(world, colors[i], 1.0f);
 		deviceContextRef->Draw(object->models[0]->vertexBufferSize, 0);
 	}

@@ -6,9 +6,6 @@
     <ClCompile Include="DXSample.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleCamera.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Win32Application.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -36,6 +33,9 @@
     <ClCompile Include="MouseHandler.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LevelOfDetail.h" />
@@ -43,9 +43,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="DXSampleHelper.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleCamera.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="StepTimer.h">
@@ -90,6 +87,9 @@
     <ClInclude Include="Console.h">
       <Filter>Core\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -130,6 +130,12 @@
       <Filter>AssetHandling\Assets</Filter>
     </Object>
     <Object Include="Assets\Models\cube.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\bunny1.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\bunny2.obj">
       <Filter>AssetHandling\Assets</Filter>
     </Object>
   </ItemGroup>

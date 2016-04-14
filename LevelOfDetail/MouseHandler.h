@@ -8,7 +8,7 @@ class MouseHandler
 private:
 
 	float2 mousePos;
-	float2 lastMousePos;
+	float2 deltaPos;
 
 public:
 
@@ -16,7 +16,7 @@ public:
 	virtual ~MouseHandler();
 
 	void Update();
-	bool MouseMoved(float2& difference);
+	bool MouseMoved(float2& deltaPos);
 
 	float2 GetMousePos();
 	float2 GetMousePosScreenSpace();

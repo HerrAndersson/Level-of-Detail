@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DXSample.h"
-#include "SimpleCamera.h"
+#include "Camera.h"
 #include "StepTimer.h"
 #include "Math.h"
 #include "DirectXHandler.h"
@@ -23,10 +23,9 @@ private:
 
 	float3 colors[100];
 
-	SimpleCamera camera;
+	Camera camera;
 	StepTimer timer;
 	DirectXHandler* dx;
-	AssetManager am;
 	MouseHandler mouse;
 
 	matrix projectionMatrix;
@@ -41,12 +40,21 @@ private:
 	ID3D11Buffer* cbPerObject;
 	ID3D11Buffer* cbPerFrame;
 
+	vector<LoDObject*> lodObjects;
+
 	void LoadAssets();
 	void LoadPipelineObjects();
 	float RandomPercent();
 
 	void SetCBPerObject(matrix world, float3 color, float blendFactor);
 	void SetCBPerFrame(matrix view, matrix projection);
+	
+	void RenderNormal();
+	void RenderStaticLOD();
+	void RenderUnpopLOD();
+	void RenderCPNTLOD();
+	void RenderPhongLOD();
+
 
 public:
 
@@ -58,5 +66,7 @@ public:
 	virtual void OnDestroy();
 	virtual void OnKeyDown(UINT8 key);
 	virtual void OnKeyUp(UINT8 key);
+
+	void UpdateMouse();
 
 };

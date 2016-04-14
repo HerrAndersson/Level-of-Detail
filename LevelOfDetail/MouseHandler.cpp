@@ -1,6 +1,6 @@
 #include "MouseHandler.h"
 
-MouseHandler::MouseHandler() : mousePos(0,0), lastMousePos(0,0)
+MouseHandler::MouseHandler() : mousePos(0, 0), deltaPos(0, 0)
 {
 }
 
@@ -10,15 +10,23 @@ MouseHandler::~MouseHandler()
 
 void MouseHandler::Update()
 {
-	lastMousePos = mousePos;
+	HWND hwnd = Win32Application::GetHwnd();
 
 	POINT point;
 	GetCursorPos(&point);
 
-	ScreenToClient(Win32Application::GetHwnd(), &point);
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	MapWindowPoints(hwnd, GetParent(hwnd), (LPPOINT)&rect, 2);
+	
+	float sx = rect.left + rect.right/2;
+	float sy = rect.top + rect.bottom/2;
+	SetCursorPos(sx, sy);
 
-	mousePos.x = (float)point.x;
-	mousePos.y = (float)point.y;
+	float dx = point.x - sx;
+	float dy = point.y - sy;
+
+	deltaPos = float2(dx, dy);
 
 	if (mousePos.x < 0) { mousePos.x = 0; }
 	if (mousePos.y < 0) { mousePos.y = 0; }
@@ -28,7 +36,7 @@ void MouseHandler::Update()
 
 bool MouseHandler::MouseMoved(float2& difference)
 {
-	if (std::abs(lastMousePos.x - mousePos.x) < F_EPSILON && std::abs(lastMousePos.y - mousePos.y) < F_EPSILON)
+	if (std::abs(deltaPos.x) < F_EPSILON && std::abs(deltaPos.y) < F_EPSILON)
 	{
 		difference.x = 0;
 		difference.y = 0;
@@ -37,9 +45,7 @@ bool MouseHandler::MouseMoved(float2& difference)
 	}
 	else
 	{
-		difference.x = mousePos.x - lastMousePos.x;
-		difference.y = mousePos.y - lastMousePos.y;
-
+		difference = deltaPos;
 		return true;
 	}
 }

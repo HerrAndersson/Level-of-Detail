@@ -1,32 +1,7 @@
 #include "AssetManager.h"
 #include "WICTextureLoader.h"
 
-AssetManager::AssetManager()
-{
-	renderObjects.reserve(5);
-};
-
-AssetManager::~AssetManager()
-{
-	for (auto o : renderObjects)
-		delete o;
-	renderObjects.clear();
-};
-
-void AssetManager::LoadObject(ID3D11Device* device, string modelPath, string texturePath)
-{
-	RenderObject* renderObject = new RenderObject();
-
-	Model* model = new Model();
-	LoadModelNoUV(device, modelPath, model);
-
-	renderObject->model = model;
-	renderObject->diffuseTexture = LoadTexture(device, texturePath);
-
-	renderObjects.push_back(renderObject);
-}
-
-void AssetManager::LoadModel(ID3D11Device* device, string file_path, Model* model)
+Model* AssetManager::LoadModel(ID3D11Device* device, string file_path)
 {
 	ifstream infile;
 	infile.open(file_path.c_str(), ifstream::binary);
@@ -113,6 +88,7 @@ void AssetManager::LoadModel(ID3D11Device* device, string file_path, Model* mode
 		}
 	}
 
+	Model* model = new Model();
 	model->vertexBufferSize = (int)faces.size();
 	infile.close();
 
@@ -131,9 +107,11 @@ void AssetManager::LoadModel(ID3D11Device* device, string file_path, Model* mode
 		throw runtime_error("AssetManager::LoadModel: Failed to create vertexBuffer");
 
 	model->vertexBuffer = vertexBuffer;
+
+	return model;
 }
 
-void AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path, Model* model)
+Model* AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path)
 {
 	ifstream infile;
 	infile.open(file_path.c_str(), ifstream::binary);
@@ -204,6 +182,7 @@ void AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path, Model* 
 		}
 	}
 
+	Model* model = new Model();
 	model->vertexBufferSize = (int)faces.size();
 	infile.close();
 
@@ -222,6 +201,8 @@ void AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path, Model* 
 		throw runtime_error("AssetManager(LoadModelNoUV): Failed to create vertexBuffer");
 
 	model->vertexBuffer = vertexBuffer;
+
+	return model;
 }
 
 ID3D11ShaderResourceView* AssetManager::LoadTexture(ID3D11Device* device, string file_path)
@@ -231,9 +212,4 @@ ID3D11ShaderResourceView* AssetManager::LoadTexture(ID3D11Device* device, string
 	DirectX::CreateWICTextureFromFile(device, widestr.c_str(), nullptr, &texture, 0);
 
 	return texture;
-}
-
-RenderObject* AssetManager::GetRenderObject(int id)
-{
-	return renderObjects[id];
 }

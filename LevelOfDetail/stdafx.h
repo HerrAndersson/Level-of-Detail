@@ -44,12 +44,32 @@ using Microsoft::WRL::ComPtr;
 using std::string;
 using std::wstring;
 
-static const int SCREEN_WIDTH = 1280;
-static const int SCREEN_HEIGHT = 720;
+static const int SCREEN_WIDTH = 1600;
+static const int SCREEN_HEIGHT = 900;
 static const string ASSET_PATH = "Assets/";
 static const string MODEL_PATH = ASSET_PATH + "Models/";
 static const string TEXTURE_PATH = ASSET_PATH + "Textures/";
 static const float F_EPSILON = std::numeric_limits<float>::epsilon();
 static const float F_MAX = (std::numeric_limits<float>::max)();
+static const int LOD_LEVELS[] = { 10, 24, 35 };
+
+struct BlendInterval
+{
+	int low;
+	int high;
+
+	BlendInterval(int l, int h)
+	{
+		low = l;
+		high = h;
+	}
+};
+
+static const BlendInterval LOD_BLEND_LEVELS[] =
+{
+	BlendInterval(LOD_LEVELS[0] - 2,LOD_LEVELS[0]),
+	BlendInterval(LOD_LEVELS[1] - 2,LOD_LEVELS[1]),
+	BlendInterval(LOD_LEVELS[2] - 2,LOD_LEVELS[2])
+};
 
 

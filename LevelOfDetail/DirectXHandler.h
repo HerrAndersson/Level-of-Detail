@@ -31,7 +31,7 @@ namespace Renderer
 	public:
 
 		enum RasterState { BACK, FRONT, NONE, WIREFRAME };
-		enum BlendState { ENABLE, DISABLE };
+		enum State { ENABLED, DISABLED };
 
 		DirectXHandler(HWND hwnd);
 		~DirectXHandler();
@@ -40,7 +40,8 @@ namespace Renderer
 		ID3D11DeviceContext* GetDeviceContext();
 
 		void SetRasterState(RasterState state);
-		void SetBlendState(BlendState state);
+		void SetBlendState(State state);
+		void SetDepthState(State state);
 
 		void BeginScene(float red, float green, float blue, float alpha);
 		void EndScene();

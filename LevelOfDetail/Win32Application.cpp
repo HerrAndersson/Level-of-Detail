@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "Win32Application.h"
+#include "LevelOfDetail.h"
 
 HWND Win32Application::m_hwnd = nullptr;
 
@@ -106,9 +107,9 @@ LRESULT CALLBACK Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wP
 		{
 			pSample->OnUpdate();
 			pSample->OnRender();
+			//static_cast<LevelOfDetail*>(pSample)->UpdateMouse();
 		}
 		return 0;
-
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;

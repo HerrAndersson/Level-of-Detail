@@ -16,7 +16,7 @@ void LevelOfDetail::OnInit()
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
 
-	camera.Init({ 0.0f, 0.0f, 0.0f }, SimpleCamera::CameraMode::MOUSE);
+	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(10.0f);
 	camera.SetTurnSpeed(XM_PI);
 
@@ -25,14 +25,34 @@ void LevelOfDetail::OnInit()
 	LoadPipelineObjects();
 	LoadAssets();
 
-
 	//dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
-	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ENABLE);
+	dx->SetBlendState(Renderer::DirectXHandler::State::ENABLED);
+}
+
+void LevelOfDetail::OnDestroy()
+{
+	delete dx;
+	delete defaultVS;
+
+	SAFE_RELEASE(defaultPS);
+	SAFE_RELEASE(samplerWrap);
+	SAFE_RELEASE(cbPerObject);
+	SAFE_RELEASE(cbPerFrame);
+
+	for (auto o : lodObjects)
+		delete o;
 }
 
 void LevelOfDetail::LoadAssets()
 {
-	am.LoadObject(deviceRef, MODEL_PATH + "bunny0.obj", TEXTURE_PATH + "sand.png");
+	LoDObject* object = new LoDObject();
+
+	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
+	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
+	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+
+	lodObjects.push_back(object);
 }
 
 void LevelOfDetail::LoadPipelineObjects()
@@ -128,49 +148,145 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 //Update frame-based values
 void LevelOfDetail::OnUpdate()
 {
-	//SetCursorPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 	timer.Tick(NULL);
-	mouse.Update();
 
 	float2 difference;
-	bool moved = mouse.MouseMoved(difference);
+	bool moved = false;
+	if (camera.GetCameraMode() != Camera::CameraMode::SCRIPTED)
+	{
+		UpdateMouse();
+		moved = mouse.MouseMoved(difference);
+	}
 
-	camera.Update(static_cast<float>(timer.GetElapsedSeconds()), moved, difference);
+	camera.Update(static_cast<float>(timer.GetElapsedSeconds()), static_cast<float>(timer.GetTotalSeconds()), moved, difference);
 
+#if _DEBUG
+	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
+	SetWindowText(Win32Application::GetHwnd(), wstring(s.begin(), s.end()).c_str());
+#endif
+
+}
+
+void LevelOfDetail::UpdateMouse()
+{
+	mouse.Update();
 }
 
 //Render the scene
 void LevelOfDetail::OnRender()
 {
+	RenderStaticLOD();
+}
+
+void LevelOfDetail::RenderNormal()
+{
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	matrix view = camera.GetViewMatrix();
 	SetCBPerFrame(view, projectionMatrix);
 
-	RenderObject* object = am.GetRenderObject(0);
+	LoDObject* object = lodObjects[0];
 
+	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
-	deviceContextRef->IASetVertexBuffers(0, 1, &object->model->vertexBuffer, &vertexSize, &offset);
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[0]->vertexBuffer, &vertexSize, &offset);
+	if (object->texture)
+		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
-	for (int i = 0; i < 10; i++)
+	//Render
+	for (int i = 0; i < 50; i++)
 	{
-		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixTranslation(i*3.0f, -1.0f, i*3.0f);
+		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixTranslation(-25 + i*4, 0, int(50 * colors[i].y)%(int)(colors[i].x*100 + 1));
 		SetCBPerObject(world, colors[i], 1.0f);
-		deviceContextRef->Draw(object->model->vertexBufferSize, 0);
+		deviceContextRef->Draw(object->models[0]->vertexBufferSize, 0);
 	}
 
 	dx->EndScene();
 }
 
-void LevelOfDetail::OnDestroy()
+void LevelOfDetail::RenderStaticLOD()
 {
-	delete dx;
-	delete defaultVS;
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
+	matrix view = camera.GetViewMatrix();
+	SetCBPerFrame(view, projectionMatrix);
 
-	SAFE_RELEASE(defaultPS)
-	SAFE_RELEASE(samplerWrap)
-	SAFE_RELEASE(cbPerObject)
-	SAFE_RELEASE(cbPerFrame)
+	LoDObject* object = lodObjects[0];
+
+	//Decide lod-level
+	float3 camPos = camera.GetPosition();
+	float length = camPos.Length();
+	int index = 0;
+	if (length > LOD_LEVELS[1])
+		index = 2;
+	else if (length < LOD_LEVELS[0])
+		index = 0;
+	else
+		index = 1;
+
+	//Set resources
+	UINT32 vertexSize = sizeof(Vertex);
+	UINT32 offset = 0;
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[index]->vertexBuffer, &vertexSize, &offset);
+	if (object->texture)
+		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+	//Render
+	matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	SetCBPerObject(world, colors[0], 1.0f);
+	deviceContextRef->Draw(object->models[index]->vertexBufferSize, 0);
+
+	dx->EndScene();
+}
+
+void LevelOfDetail::RenderUnpopLOD()
+{
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
+	matrix view = camera.GetViewMatrix();
+	SetCBPerFrame(view, projectionMatrix);
+
+	LoDObject* object = lodObjects[0];
+
+	//Decide lod-level
+	float3 camPos = camera.GetPosition();
+	float length = camPos.Length();
+	int index = 0;
+	if (length > LOD_LEVELS[1])
+		index = 2;
+	else if (length < LOD_LEVELS[0])
+		index = 0;
+	else
+		index = 1;
+
+	//Set resources
+	UINT32 vertexSize = sizeof(Vertex);
+	UINT32 offset = 0;
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[index]->vertexBuffer, &vertexSize, &offset);
+	if (object->texture)
+		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+	//Render
+	matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	SetCBPerObject(world, colors[0], 1.0f);
+	deviceContextRef->Draw(object->models[index]->vertexBufferSize, 0);
+
+	float percentage = 0;
+	if (length > LOD_BLEND_LEVELS[index].low && length < LOD_BLEND_LEVELS[index].high)
+	{
+		percentage = (length - LOD_BLEND_LEVELS[index].low) / (LOD_BLEND_LEVELS[index].high - LOD_BLEND_LEVELS[index].low);
+		index++;
+	}
+
+	dx->EndScene();
+}
+
+void LevelOfDetail::RenderCPNTLOD()
+{
+
+}
+
+void LevelOfDetail::RenderPhongLOD()
+{
+
 }
 
 void LevelOfDetail::OnKeyDown(UINT8 key)

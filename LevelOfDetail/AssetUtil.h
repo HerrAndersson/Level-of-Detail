@@ -26,16 +26,25 @@ namespace AssetUtility
 		ID3D11Buffer* vertexBuffer;
 	};
 
-	struct RenderObject 
+	struct LoDObject 
 	{
-		Model* model;
-		ID3D11ShaderResourceView* diffuseTexture = nullptr;
+		Model* models[3];
+		ID3D11ShaderResourceView* texture = nullptr;
 
-		~RenderObject()
+		LoDObject()
 		{
-			SAFE_RELEASE(diffuseTexture);
-			SAFE_RELEASE(model->vertexBuffer);
-			delete model;
+
+		}
+
+		~LoDObject()
+		{
+			SAFE_RELEASE(texture);
+
+			for (auto m : models)
+			{
+				SAFE_RELEASE(m->vertexBuffer);
+				delete m;
+			}
 		}
 	};
 }

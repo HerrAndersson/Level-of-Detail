@@ -203,7 +203,7 @@ namespace Renderer
 
 
 		deviceContext->RSSetState(rsBack);
-		deviceContext->OMSetDepthStencilState(depthEnable, 1);
+		deviceContext->OMSetDepthStencilState(depthEnable, 0);
 		deviceContext->RSSetViewports(1, &viewport);
 		deviceContext->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
 	}
@@ -267,20 +267,38 @@ namespace Renderer
 		}
 	}
 
-	void DirectXHandler::SetBlendState(BlendState state)
+	void DirectXHandler::SetBlendState(State state)
 	{
 		FLOAT factor[] = { 0,0,0,0 };
 		//Passing NULL as factor gives a default value of (1,1,1,1)
 		switch (state)
 		{
-		case Renderer::DirectXHandler::BlendState::ENABLE:
+		case Renderer::DirectXHandler::State::ENABLED:
 		{
 			deviceContext->OMSetBlendState(blendEnable, factor, 0xffffffff);
 			break;
 		}
-		case Renderer::DirectXHandler::BlendState::DISABLE:
+		case Renderer::DirectXHandler::State::DISABLED:
 		{
 			deviceContext->OMSetBlendState(blendDisable, factor, 0xffffffff);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	void DirectXHandler::SetDepthState(State state)
+	{
+		switch (state)
+		{
+		case Renderer::DirectXHandler::State::ENABLED:
+		{
+			deviceContext->OMSetDepthStencilState(depthEnable, 0);
+		}
+		case Renderer::DirectXHandler::State::DISABLED:
+		{
+			deviceContext->OMSetDepthStencilState(depthDisable, 0);
 			break;
 		}
 		default:

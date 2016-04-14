@@ -17,7 +17,7 @@ struct VS_OUT
 float4 main(VS_OUT input) : SV_TARGET
 {
 	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, 100));
-	float lightIntensity = saturate(dot(input.normal.xyz, lightDir)) + 0.35f;
+	float lightIntensity = saturate(dot(input.normal.xyz, lightDir));
 	float4 finalColor = saturate(float4(input.color, 1.0f) * lightIntensity);
 
 	return float4(finalColor.xyz, input.blendFactor);

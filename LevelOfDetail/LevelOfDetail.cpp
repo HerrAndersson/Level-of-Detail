@@ -2,7 +2,8 @@
 #include "LevelOfDetail.h"
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
-	DXSample(width, height, name)
+	DXSample(width, height, name),
+	activeTechnique(LoDTechnique::UNPOPPING)
 {
 	for (int i = 0; i < 100; i++)
 	{
@@ -25,8 +26,8 @@ void LevelOfDetail::OnInit()
 	LoadPipelineObjects();
 	LoadAssets();
 
-	//dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
-	dx->SetBlendState(Renderer::DirectXHandler::BlendState::DISABLED);
+	/*dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);*/
+	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ADDITIVE_ALPHA);
 }
 
 void LevelOfDetail::OnDestroy()
@@ -149,6 +150,8 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 void LevelOfDetail::OnUpdate()
 {
 	timer.Tick(NULL);
+	float frameTime = static_cast<float>(timer.GetElapsedSeconds());
+	float gameTime = static_cast<float>(timer.GetTotalSeconds());
 
 	float2 difference;
 	bool moved = false;
@@ -158,7 +161,7 @@ void LevelOfDetail::OnUpdate()
 		moved = mouse.MouseMoved(difference);
 	}
 
-	camera.Update(static_cast<float>(timer.GetElapsedSeconds()), static_cast<float>(timer.GetTotalSeconds()), moved, difference);
+	camera.Update(frameTime, gameTime, moved, difference);
 
 #if _DEBUG
 	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
@@ -175,10 +178,30 @@ void LevelOfDetail::UpdateMouse()
 //Render the scene
 void LevelOfDetail::OnRender()
 {
-	RenderStaticLOD();
+	switch (activeTechnique)
+	{
+	case LoDTechnique::NO_LOD:
+		RenderNoLOD();
+		break;
+	case LoDTechnique::STATIC:
+		RenderStaticLOD();
+		break;
+	case LoDTechnique::UNPOPPING:
+		RenderUnpoppingLOD();
+		break;
+	case LoDTechnique::CPNT:
+		RenderCPNTLOD();
+		break;
+	case LoDTechnique::PHONG:
+		RenderPhongLOD();
+		break;
+	default:
+		RenderNoLOD();
+		break;
+	}
 }
 
-void LevelOfDetail::RenderNormal()
+void LevelOfDetail::RenderNoLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	matrix view = camera.GetViewMatrix();
@@ -215,30 +238,30 @@ void LevelOfDetail::RenderStaticLOD()
 	//Decide lod-level
 	float3 camPos = camera.GetPosition();
 	float length = camPos.Length();
-	int index = 0;
+
 	if (length > LOD_LEVELS[1])
-		index = 2;
+		object->lodIndex = 2;
 	else if (length < LOD_LEVELS[0])
-		index = 0;
+		object->lodIndex = 0;
 	else
-		index = 1;
+		object->lodIndex = 1;
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
-	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[index]->vertexBuffer, &vertexSize, &offset);
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
 	if (object->texture)
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 	//Render
 	matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
 	SetCBPerObject(world, colors[0], 1.0f);
-	deviceContextRef->Draw(object->models[index]->vertexBufferSize, 0);
+	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();
 }
 
-void LevelOfDetail::RenderUnpopLOD()
+void LevelOfDetail::RenderUnpoppingLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	matrix view = camera.GetViewMatrix();
@@ -246,34 +269,134 @@ void LevelOfDetail::RenderUnpopLOD()
 
 	LoDObject* object = lodObjects[0];
 
-	//Decide lod-level
+	//Decide lod-level of objects and update blend timer etc
+	//Only works for objects at (0,0,0). If they should be spread out they need to hold their own position, and the length would be of the vector from camPos to objPos
+
+	if (object->unpopBlendTimerActive)
+	{
+		if (object->unpopBlendTime > object->unpopBlendLimit)
+			object->unpopBlendTimerActive = false;
+		else
+			object->unpopBlendTime += static_cast<float>(timer.GetElapsedSeconds());
+	}
+
 	float3 camPos = camera.GetPosition();
 	float length = camPos.Length();
-	int index = 0;
+
+	bool switchLoD = false;
 	if (length > LOD_LEVELS[1])
-		index = 2;
-	else if (length < LOD_LEVELS[0])
-		index = 0;
-	else
-		index = 1;
-
-	//Set resources
-	UINT32 vertexSize = sizeof(Vertex);
-	UINT32 offset = 0;
-	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[index]->vertexBuffer, &vertexSize, &offset);
-	if (object->texture)
-		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
-
-	//Render
-	matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
-	SetCBPerObject(world, colors[0], 1.0f);
-	deviceContextRef->Draw(object->models[index]->vertexBufferSize, 0);
-
-	float percentage = 0;
-	if (length > LOD_BLEND_LEVELS[index].low && length < LOD_BLEND_LEVELS[index].high)
 	{
-		percentage = (length - LOD_BLEND_LEVELS[index].low) / (LOD_BLEND_LEVELS[index].high - LOD_BLEND_LEVELS[index].low);
-		index++;
+		object->lodIndexPrevious = object->lodIndex;
+		object->lodIndex = 2;
+		//switchLoD = true;
+	}
+	else if (length < LOD_LEVELS[0])
+	{
+		object->lodIndexPrevious = object->lodIndex;
+		object->lodIndex = 0;
+		//switchLoD = true;
+	}
+	else
+	{
+		object->lodIndexPrevious = object->lodIndex;
+		object->lodIndex = 1;
+		//switchLoD = true;
+	}
+
+	if (object->lodIndex != object->lodIndexPrevious)
+		switchLoD = true;
+
+	if (switchLoD)
+	{
+		switchLoD = false;
+		object->unpopBlendLimit = BLEND_TIME;
+		object->unpopBlendTime = 0;
+		object->unpopBlendTimerActive = true;
+	}
+
+	//Have a timer that count up to 1 second. when < 1 second = render lodPreviousIndex. 
+	/*Schedule the z-writes and z-tests. 
+	
+	 ___________________________________________
+	|	   |	 [0, 0.5] 	  |	    [0.5, 1]	|
+	|------|------------------|-----------------|
+	|      |   OLD     NEW    |   OLD     NEW   |
+	|------|------------------|-----------------|
+	|Alpha |    1	    2t    |  2(1-t)    1	|
+	|Test  |	e	    e     |    e	   e	|
+	|Write |	e	    d     |    d       e	|
+	¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯ 
+
+	*/
+
+	float alpha1 = 1.0f;
+	float alpha2 = 0.0f;
+
+	bool write1 = false;
+	bool write2 = false;
+
+	if (object->unpopBlendTimerActive)
+	{
+		if (object->unpopBlendTime < object->unpopBlendLimit / 2.0f)
+		{
+			alpha1 = 1.0f;
+			alpha2 = 2.0f * object->unpopBlendTime;
+			write1 = true;
+			write2 = false;
+		}
+		else
+		{
+			alpha1 = 2.0f * (1.0f - object->unpopBlendTime);
+			alpha2 = 1.0f;
+			write1 = false;
+			write2 = true;
+		}
+
+		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+		UINT32 vertexSize = sizeof(Vertex);
+		UINT32 offset = 0;
+
+		//Set resources for OLD
+		if (write1)
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+		else
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
+
+		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndexPrevious]->vertexBuffer, &vertexSize, &offset);
+		if (object->texture)
+			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+		//Render OLD
+		SetCBPerObject(world, colors[0], alpha1);
+		deviceContextRef->Draw(object->models[object->lodIndexPrevious]->vertexBufferSize, 0);
+
+		//Set resources for NEW
+		if (write2)
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+		else
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
+
+		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+		if (object->texture)
+			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+		//Render NEW
+		SetCBPerObject(world, colors[0], alpha2);
+		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
+	}
+	else
+	{
+		//Set resources for current index
+		UINT32 vertexSize = sizeof(Vertex);
+		UINT32 offset = 0;
+		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+		if (object->texture)
+			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+		//Render current index
+		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+		SetCBPerObject(world, colors[0], alpha1);
+		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
 
 	dx->EndScene();
@@ -281,17 +404,50 @@ void LevelOfDetail::RenderUnpopLOD()
 
 void LevelOfDetail::RenderCPNTLOD()
 {
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
+	matrix view = camera.GetViewMatrix();
+	SetCBPerFrame(view, projectionMatrix);
 
+
+
+	dx->EndScene();
 }
 
 void LevelOfDetail::RenderPhongLOD()
 {
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
+	matrix view = camera.GetViewMatrix();
+	SetCBPerFrame(view, projectionMatrix);
 
+
+
+	dx->EndScene();
 }
 
 void LevelOfDetail::OnKeyDown(UINT8 key)
 {
 	camera.OnKeyDown(key);
+
+	switch (key)
+	{
+	case '0':
+		activeTechnique = LoDTechnique::NO_LOD;
+		break;
+	case '1':
+		activeTechnique = LoDTechnique::STATIC;
+		break;
+	case '2':
+		activeTechnique = LoDTechnique::UNPOPPING;
+		break;
+	case '3':
+		activeTechnique = LoDTechnique::CPNT;
+		break;
+	case '4':
+		activeTechnique = LoDTechnique::PHONG;
+		break;
+	default:
+		break;
+	}
 }
 
 void LevelOfDetail::OnKeyUp(UINT8 key)

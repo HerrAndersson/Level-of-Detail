@@ -52,24 +52,25 @@ static const string TEXTURE_PATH = ASSET_PATH + "Textures/";
 static const float F_EPSILON = std::numeric_limits<float>::epsilon();
 static const float F_MAX = (std::numeric_limits<float>::max)();
 static const int LOD_LEVELS[] = { 10, 24, 35 };
+static const float BLEND_TIME = 1.0f; //Seconds
 
-struct BlendInterval
-{
-	int low;
-	int high;
-
-	BlendInterval(int l, int h)
-	{
-		low = l;
-		high = h;
-	}
-};
-
-static const BlendInterval LOD_BLEND_LEVELS[] =
-{
-	BlendInterval(LOD_LEVELS[0] - 2,LOD_LEVELS[0]),
-	BlendInterval(LOD_LEVELS[1] - 2,LOD_LEVELS[1]),
-	BlendInterval(LOD_LEVELS[2] - 2,LOD_LEVELS[2])
-};
+//struct BlendInterval
+//{
+//	int low;
+//	int high;
+//
+//	BlendInterval(int l, int h)
+//	{
+//		low = l;
+//		high = h;
+//	}
+//};
+//
+//static const BlendInterval LOD_BLEND_LEVELS[] =
+//{
+//	BlendInterval(LOD_LEVELS[0] - 2,LOD_LEVELS[0]),
+//	BlendInterval(LOD_LEVELS[1] - 2,LOD_LEVELS[1]),
+//	BlendInterval(LOD_LEVELS[2] - 2,LOD_LEVELS[2])
+//};
 
 

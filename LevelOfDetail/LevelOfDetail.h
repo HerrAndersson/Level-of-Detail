@@ -20,8 +20,10 @@ class LevelOfDetail : public DXSample
 {
 
 private:
+	enum LoDTechnique { NO_LOD, STATIC, UNPOPPING, CPNT, PHONG };
 
 	float3 colors[100];
+	LoDTechnique activeTechnique;
 
 	Camera camera;
 	StepTimer timer;
@@ -49,9 +51,9 @@ private:
 	void SetCBPerObject(matrix world, float3 color, float blendFactor);
 	void SetCBPerFrame(matrix view, matrix projection);
 	
-	void RenderNormal();
+	void RenderNoLOD();
 	void RenderStaticLOD();
-	void RenderUnpopLOD();
+	void RenderUnpoppingLOD();
 	void RenderCPNTLOD();
 	void RenderPhongLOD();
 

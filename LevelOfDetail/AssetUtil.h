@@ -31,6 +31,13 @@ namespace AssetUtility
 		Model* models[3];
 		ID3D11ShaderResourceView* texture = nullptr;
 
+		float unpopBlendTime = 0;
+		float unpopBlendLimit = 0;
+		bool unpopBlendTimerActive = false;
+
+		int lodIndex = 0;
+		int lodIndexPrevious = 0;
+
 		LoDObject()
 		{
 

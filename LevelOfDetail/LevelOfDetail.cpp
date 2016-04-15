@@ -9,6 +9,8 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	{
 		colors[i] = float3((RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2);
 	}
+
+	freelookCameraActive = false;
 }
 
 void LevelOfDetail::OnInit()
@@ -20,13 +22,17 @@ void LevelOfDetail::OnInit()
 	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(10.0f);
 	camera.SetTurnSpeed(XM_PI);
+	freelookCamera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::MOUSE);
+	freelookCamera.SetMoveSpeed(10.0f);
+	freelookCamera.SetTurnSpeed(XM_PI);
 
 	projectionMatrix = camera.GetProjectionMatrix(XM_PIDIV2, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
+	viewMatrix = camera.GetViewMatrix();
 
 	LoadPipelineObjects();
 	LoadAssets();
 
-	/*dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);*/
+	dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
 	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ADDITIVE_ALPHA);
 }
 
@@ -155,13 +161,21 @@ void LevelOfDetail::OnUpdate()
 
 	float2 difference;
 	bool moved = false;
-	if (camera.GetCameraMode() == Camera::CameraMode::MOUSE)
+	if (freelookCameraActive)
 	{
 		UpdateMouse();
 		moved = mouse.MouseMoved(difference);
+		freelookCamera.Update(frameTime, gameTime, moved, difference);
+		viewMatrix = freelookCamera.GetViewMatrix();
+	}
+	else
+	{
+		viewMatrix = camera.GetViewMatrix();
 	}
 
 	camera.Update(frameTime, gameTime, moved, difference);
+
+	
 
 #if _DEBUG
 	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
@@ -230,8 +244,7 @@ void LevelOfDetail::RenderNoLOD()
 void LevelOfDetail::RenderStaticLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	matrix view = camera.GetViewMatrix();
-	SetCBPerFrame(view, projectionMatrix);
+	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 	LoDObject* object = lodObjects[0];
 
@@ -264,8 +277,7 @@ void LevelOfDetail::RenderStaticLOD()
 void LevelOfDetail::RenderUnpoppingLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	matrix view = camera.GetViewMatrix();
-	SetCBPerFrame(view, projectionMatrix);
+	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 	LoDObject* object = lodObjects[0];
 
@@ -288,19 +300,16 @@ void LevelOfDetail::RenderUnpoppingLOD()
 	{
 		object->lodIndexPrevious = object->lodIndex;
 		object->lodIndex = 2;
-		//switchLoD = true;
 	}
 	else if (length < LOD_LEVELS[0])
 	{
 		object->lodIndexPrevious = object->lodIndex;
 		object->lodIndex = 0;
-		//switchLoD = true;
 	}
 	else
 	{
 		object->lodIndexPrevious = object->lodIndex;
 		object->lodIndex = 1;
-		//switchLoD = true;
 	}
 
 	if (object->lodIndex != object->lodIndexPrevious)
@@ -310,12 +319,12 @@ void LevelOfDetail::RenderUnpoppingLOD()
 	{
 		switchLoD = false;
 		object->unpopBlendLimit = BLEND_TIME;
-		object->unpopBlendTime = 0;
+		object->unpopBlendTime = 0.0f;
 		object->unpopBlendTimerActive = true;
 	}
 
-	//Have a timer that count up to 1 second. when < 1 second = render lodPreviousIndex. 
-	/*Schedule the z-writes and z-tests. 
+	//Have a timer that counts up to 1 second. when < 1 second = render lodPreviousIndex and lodIndex. 
+	/*Schedule the z-writes and z-tests:
 	
 	 ___________________________________________
 	|	   |	 [0, 0.5] 	  |	    [0.5, 1]	|
@@ -381,7 +390,7 @@ void LevelOfDetail::RenderUnpoppingLOD()
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 		//Render NEW
-		SetCBPerObject(world, colors[0], alpha2);
+		SetCBPerObject(world, colors[1], alpha2);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
 	else
@@ -395,7 +404,7 @@ void LevelOfDetail::RenderUnpoppingLOD()
 
 		//Render current index
 		matrix world = XMMatrixScaling(5.0f, 5.0f, 5.0f);
-		SetCBPerObject(world, colors[0], alpha1);
+		SetCBPerObject(world, colors[0], 1.0f);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
 
@@ -405,8 +414,7 @@ void LevelOfDetail::RenderUnpoppingLOD()
 void LevelOfDetail::RenderCPNTLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	matrix view = camera.GetViewMatrix();
-	SetCBPerFrame(view, projectionMatrix);
+	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 
 
@@ -416,8 +424,7 @@ void LevelOfDetail::RenderCPNTLOD()
 void LevelOfDetail::RenderPhongLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	matrix view = camera.GetViewMatrix();
-	SetCBPerFrame(view, projectionMatrix);
+	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 
 
@@ -427,6 +434,7 @@ void LevelOfDetail::RenderPhongLOD()
 void LevelOfDetail::OnKeyDown(UINT8 key)
 {
 	camera.OnKeyDown(key);
+	freelookCamera.OnKeyDown(key);
 
 	switch (key)
 	{
@@ -445,6 +453,8 @@ void LevelOfDetail::OnKeyDown(UINT8 key)
 	case '4':
 		activeTechnique = LoDTechnique::PHONG;
 		break;
+	case VK_TAB:
+		freelookCameraActive = !freelookCameraActive;
 	default:
 		break;
 	}
@@ -453,6 +463,7 @@ void LevelOfDetail::OnKeyDown(UINT8 key)
 void LevelOfDetail::OnKeyUp(UINT8 key)
 {
 	camera.OnKeyUp(key);
+	freelookCamera.OnKeyUp(key);
 }
 
 // Random percent value, from -1 to 1.

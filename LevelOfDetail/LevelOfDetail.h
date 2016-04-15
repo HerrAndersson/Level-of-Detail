@@ -24,13 +24,16 @@ private:
 
 	float3 colors[100];
 	LoDTechnique activeTechnique;
+	bool freelookCameraActive;
 
 	Camera camera;
+	Camera freelookCamera;
 	StepTimer timer;
 	DirectXHandler* dx;
 	MouseHandler mouse;
 
 	matrix projectionMatrix;
+	matrix viewMatrix;
 
 	ID3D11Device* deviceRef;
 	ID3D11DeviceContext* deviceContextRef;

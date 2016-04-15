@@ -59,7 +59,7 @@ public:
 	void Update(float elapsedSeconds, float totalSeconds, bool mouseMoved, float2 difference);
 
 	XMMATRIX GetViewMatrix();
-	XMMATRIX GetProjectionMatrix(float fov, float aspectRatio, float nearPlane = 1.0f, float farPlane = 1000.0f);
+	XMMATRIX GetProjectionMatrix(float fov, float aspectRatio, float nearPlane = 0.1f, float farPlane = 1000.0f);
 	float3 GetPosition() const;
 	float3 GetRotation() const;
 	CameraMode GetCameraMode() const;

@@ -127,7 +127,7 @@ namespace Renderer
 		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		depthStencilDesc.StencilEnable = true;
+		depthStencilDesc.StencilEnable = false;
 		depthStencilDesc.StencilReadMask = 0xFF;
 		depthStencilDesc.StencilWriteMask = 0xFF;
 		depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
@@ -142,13 +142,14 @@ namespace Renderer
 		//Create depth test enable
 		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating depth test ENABLE");
+			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE");
 
 		//Create depth test enable write disable
+		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating depth write DISABLE");
+			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD");
 
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////

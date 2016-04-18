@@ -3,7 +3,7 @@
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::STATIC),
+	activeTechnique(LoDTechnique::CPNT),
 	rotation(0,0,0)
 {
 	for (int i = 0; i < 100; i++)
@@ -43,9 +43,15 @@ void LevelOfDetail::OnDestroy()
 	delete defaultVS;
 
 	SAFE_RELEASE(defaultPS);
+	SAFE_RELEASE(CpntHS);
+	SAFE_RELEASE(PhongHS);
+	SAFE_RELEASE(CpntDS);
+	SAFE_RELEASE(PhongDS);
+
 	SAFE_RELEASE(samplerWrap);
-	SAFE_RELEASE(cbPerObject);
-	SAFE_RELEASE(cbPerFrame);
+	SAFE_RELEASE(cbPerObjectVS);
+	SAFE_RELEASE(cbPerFrameVS);
+	SAFE_RELEASE(cbPerObjectPS);
 
 	for (auto o : lodObjects)
 		delete o;
@@ -83,9 +89,18 @@ void LevelOfDetail::LoadPipelineObjects()
 
 	int numElements = sizeof(posTexNormInputDesc) / sizeof(posTexNormInputDesc[0]);
 
+	//Vertex shaders
 	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/ModelVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
+	//Hull shaders
+	CpntHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/CpntHS.hlsl", compileFlags);
+	PhongHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/PhongHS.hlsl", compileFlags);
+	//Domain shaders
+	CpntDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/CpntDS.hlsl", compileFlags);
+	PhongDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/PhongDS.hlsl", compileFlags);
+	//Pixel shaders
 	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/ModelPS.hlsl", compileFlags);
 
+	//Samplers
 	samplerWrap = ShaderHandler::CreateSamplerState(deviceRef, SamplerStates::WRAP);
 
 	//Initialize constant buffers
@@ -98,15 +113,20 @@ void LevelOfDetail::LoadPipelineObjects()
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	matrixBufferDesc.ByteWidth = sizeof(CBPerObject);
-	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObject);
+	matrixBufferDesc.ByteWidth = sizeof(CBPerObjectVS);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObjectVS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObject");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectVS");
 
-	matrixBufferDesc.ByteWidth = sizeof(CBPerFrame);
-	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrame);
+	matrixBufferDesc.ByteWidth = sizeof(CBPerObjectPS);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObjectPS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrame");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectPS");
+
+	matrixBufferDesc.ByteWidth = sizeof(CBPerFrameVS);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrameVS);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameVS");
 
 	//Set states and shaders
 	switch (activeTechnique)
@@ -136,37 +156,52 @@ void LevelOfDetail::SetCBPerObject(matrix world, float3 color, float blendFactor
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	CBPerObject* dataPtr;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-	result = deviceContextRef->Map(cbPerObject, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//Vertex shader buffers
+	CBPerObjectVS* dataPtrVS;
+	result = deviceContextRef->Map(cbPerObjectVS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::SetCBPerObject: Failed to Map cbPerObject");
 
-	dataPtr = static_cast<CBPerObject*>(mappedResource.pData);
-	dataPtr->world = XMMatrixTranspose(world.ToSIMD());
-	dataPtr->color = color;
-	dataPtr->blendFactor = blendFactor;
-	deviceContextRef->Unmap(cbPerObject, 0);
+	dataPtrVS = static_cast<CBPerObjectVS*>(mappedResource.pData);
+	dataPtrVS->world = XMMatrixTranspose(world.ToSIMD());
+	deviceContextRef->Unmap(cbPerObjectVS, 0);
 
-	deviceContextRef->VSSetConstantBuffers(1, 1, &cbPerObject);
+	deviceContextRef->VSSetConstantBuffers(1, 1, &cbPerObjectVS);
+
+	//Pixel shader buffers
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	CBPerObjectPS* dataPtrPS;
+	result = deviceContextRef->Map(cbPerObjectPS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::SetCBPerObject: Failed to Map cbPerObject");
+
+	dataPtrPS = static_cast<CBPerObjectPS*>(mappedResource.pData);
+	dataPtrPS->blendFactor = blendFactor;
+	dataPtrPS->color = color;
+	deviceContextRef->Unmap(cbPerObjectVS, 0);
+
+	deviceContextRef->PSSetConstantBuffers(0, 1, &cbPerObjectPS);
 }
 
 void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	CBPerFrame* dataPtr;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	CBPerFrameVS* dataPtr;
 
-	result = deviceContextRef->Map(cbPerFrame, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	result = deviceContextRef->Map(cbPerFrameVS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::SetCBPerFrame: Failed to Map cbPerFrame");
 
-	dataPtr = static_cast<CBPerFrame*>(mappedResource.pData);
+	dataPtr = static_cast<CBPerFrameVS*>(mappedResource.pData);
 	dataPtr->view = XMMatrixTranspose(view.ToSIMD());
 	dataPtr->projection = XMMatrixTranspose(projection.ToSIMD());
-	deviceContextRef->Unmap(cbPerFrame, 0);
+	deviceContextRef->Unmap(cbPerFrameVS, 0);
 
-	deviceContextRef->VSSetConstantBuffers(0, 1, &cbPerFrame);
+	deviceContextRef->VSSetConstantBuffers(0, 1, &cbPerFrameVS);
 }
 
 //Update frame-based values
@@ -224,21 +259,21 @@ void LevelOfDetail::OnRender()
 		break;
 	}
 
-	float increment = XM_2PI / 360.0f;
-	if (rotation.x < XM_PI && rotation.y >= XM_PI)
-	{
-		rotation.x += increment;
-		rotation.y = 0;
-	}
-	else if (rotation.y < XM_PI && rotation.z >= XM_PI)
-	{
-		rotation.y += increment;
-		rotation.z = 0;
-	}
-	else if (rotation.z < XM_PI)
-	{
-		rotation.z += increment;
-	}
+	//float increment = XM_2PI / 360.0f;
+	//if (rotation.x < XM_PI && rotation.y >= XM_PI)
+	//{
+	//	rotation.x += increment;
+	//	rotation.y = 0;
+	//}
+	//else if (rotation.y < XM_PI && rotation.z >= XM_PI)
+	//{
+	//	rotation.y += increment;
+	//	rotation.z = 0;
+	//}
+	//else if (rotation.z < XM_PI)
+	//{
+	//	rotation.z += increment;
+	//}
 
 
 	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
@@ -512,7 +547,10 @@ void LevelOfDetail::SetNoLOD()
 
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(nullptr, nullptr, 0);
+	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -523,7 +561,10 @@ void LevelOfDetail::SetStaticLOD()
 
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(nullptr, nullptr, 0);
+	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -534,7 +575,10 @@ void LevelOfDetail::SetUnpoppingLOD()
 
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(nullptr, nullptr, 0);
+	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -542,11 +586,30 @@ void LevelOfDetail::SetUnpoppingLOD()
 void LevelOfDetail::SetCPNTLOD()
 {
 	activeTechnique = LoDTechnique::CPNT;
+
+	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
+	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(CpntHS, nullptr, 0);
+	deviceContextRef->DSSetShader(CpntDS, nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
+	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
+	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 }
 
 void LevelOfDetail::SetPhongLOD()
 {
 	activeTechnique = LoDTechnique::PHONG;
+
+	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
+	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(PhongHS, nullptr, 0);
+	deviceContextRef->DSSetShader(PhongDS, nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
+	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
+	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 // Random percent value, from -1 to 1.

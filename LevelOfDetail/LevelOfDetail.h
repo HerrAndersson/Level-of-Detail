@@ -25,6 +25,7 @@ private:
 	float3 colors[100];
 	LoDTechnique activeTechnique;
 	bool freelookCameraActive;
+	float3 rotation;
 
 	Camera camera;
 	Camera freelookCamera;
@@ -34,6 +35,7 @@ private:
 
 	matrix projectionMatrix;
 	matrix viewMatrix;
+	matrix worldMatrix;
 
 	ID3D11Device* deviceRef;
 	ID3D11DeviceContext* deviceContextRef;
@@ -60,6 +62,11 @@ private:
 	void RenderCPNTLOD();
 	void RenderPhongLOD();
 
+	void SetNoLOD();
+	void SetStaticLOD();
+	void SetUnpoppingLOD();
+	void SetCPNTLOD();
+	void SetPhongLOD();
 
 public:
 
@@ -71,7 +78,4 @@ public:
 	virtual void OnDestroy();
 	virtual void OnKeyDown(UINT8 key);
 	virtual void OnKeyUp(UINT8 key);
-
-	void UpdateMouse();
-
 };

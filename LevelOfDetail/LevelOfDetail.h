@@ -27,27 +27,37 @@ private:
 	bool freelookCameraActive;
 	float3 rotation;
 
+	matrix projectionMatrix;
+	matrix viewMatrix;
+	matrix worldMatrix;
+
 	Camera camera;
 	Camera freelookCamera;
 	StepTimer timer;
 	DirectXHandler* dx;
 	MouseHandler mouse;
 
-	matrix projectionMatrix;
-	matrix viewMatrix;
-	matrix worldMatrix;
+	vector<LoDObject*> lodObjects;
 
 	ID3D11Device* deviceRef;
 	ID3D11DeviceContext* deviceContextRef;
 
+	//Vertex shaders
 	VertexShaderData* defaultVS;
+	//Hull shaders
+	ID3D11HullShader* CpntHS;
+	ID3D11HullShader* PhongHS;
+	//Domain shaders
+	ID3D11DomainShader* CpntDS;
+	ID3D11DomainShader* PhongDS;
+	//Pixel shaders
 	ID3D11PixelShader* defaultPS;
+
 	ID3D11SamplerState* samplerWrap;
 
-	ID3D11Buffer* cbPerObject;
-	ID3D11Buffer* cbPerFrame;
-
-	vector<LoDObject*> lodObjects;
+	ID3D11Buffer* cbPerObjectVS;
+	ID3D11Buffer* cbPerFrameVS;
+	ID3D11Buffer* cbPerObjectPS;
 
 	void LoadAssets();
 	void LoadPipelineObjects();

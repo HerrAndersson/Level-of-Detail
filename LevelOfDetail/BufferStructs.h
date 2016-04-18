@@ -2,7 +2,7 @@
 #include "stdafx.h"
 using namespace Math;
 
-struct CBPerFrameVS
+struct CBPerFrame
 {
 	XMMATRIX view;
 	XMMATRIX projection;
@@ -17,4 +17,9 @@ struct CBPerObjectPS
 {
 	XMFLOAT3 color;
 	float blendFactor;
+};
+
+struct CBPerPatchHS
+{
+	float tessellationFactor;
 };

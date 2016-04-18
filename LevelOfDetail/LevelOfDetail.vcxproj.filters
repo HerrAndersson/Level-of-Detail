@@ -130,6 +130,12 @@
     <FxCompile Include="Shaders\PhongHS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\CpntVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\CpntPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="Assets\Models\armadillo0.obj">
@@ -148,6 +154,15 @@
       <Filter>AssetHandling\Assets</Filter>
     </Object>
     <Object Include="Assets\Models\bunny2.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\box0.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\box1.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\box2.obj">
       <Filter>AssetHandling\Assets</Filter>
     </Object>
   </ItemGroup>

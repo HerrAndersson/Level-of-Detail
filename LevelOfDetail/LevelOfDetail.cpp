@@ -4,14 +4,14 @@
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
 	activeTechnique(LoDTechnique::CPNT),
+	wireframeModeActive(false),
+	freelookCameraActive(false),
 	rotation(0,0,0)
 {
 	for (int i = 0; i < 100; i++)
 	{
 		colors[i] = float3((RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2, (RandomPercent() + 1) / 2);
 	}
-
-	freelookCameraActive = false;
 }
 
 void LevelOfDetail::OnInit()
@@ -32,21 +32,20 @@ void LevelOfDetail::OnInit()
 
 	LoadPipelineObjects();
 	LoadAssets();
-
-	//dx->SetRasterState(Renderer::DirectXHandler::RasterState::WIREFRAME);
-	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ADDITIVE_ALPHA);
 }
 
 void LevelOfDetail::OnDestroy()
 {
 	delete dx;
 	delete defaultVS;
+	delete cpntVS;
 
 	SAFE_RELEASE(defaultPS);
-	SAFE_RELEASE(CpntHS);
-	SAFE_RELEASE(PhongHS);
-	SAFE_RELEASE(CpntDS);
-	SAFE_RELEASE(PhongDS);
+	SAFE_RELEASE(cpntHS);
+	SAFE_RELEASE(phongHS);
+	SAFE_RELEASE(cpntDS);
+	SAFE_RELEASE(phongDS);
+	SAFE_RELEASE(cpntPS);
 
 	SAFE_RELEASE(samplerWrap);
 	SAFE_RELEASE(cbPerObjectVS);
@@ -61,10 +60,16 @@ void LevelOfDetail::LoadAssets()
 {
 	LoDObject* object = new LoDObject();
 
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
+	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
+	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+
 	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
-	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
-	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
+	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
+	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
+
 
 	lodObjects.push_back(object);
 }
@@ -91,14 +96,16 @@ void LevelOfDetail::LoadPipelineObjects()
 
 	//Vertex shaders
 	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/ModelVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
+	cpntVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/CpntVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
 	//Hull shaders
-	CpntHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/CpntHS.hlsl", compileFlags);
-	PhongHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/PhongHS.hlsl", compileFlags);
+	cpntHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/CpntHS.hlsl", compileFlags);
+	phongHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/PhongHS.hlsl", compileFlags);
 	//Domain shaders
-	CpntDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/CpntDS.hlsl", compileFlags);
-	PhongDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/PhongDS.hlsl", compileFlags);
+	cpntDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/CpntDS.hlsl", compileFlags);
+	phongDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/PhongDS.hlsl", compileFlags);
 	//Pixel shaders
 	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/ModelPS.hlsl", compileFlags);
+	cpntPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/CpntPS.hlsl", compileFlags);
 
 	//Samplers
 	samplerWrap = ShaderHandler::CreateSamplerState(deviceRef, SamplerStates::WRAP);
@@ -123,10 +130,15 @@ void LevelOfDetail::LoadPipelineObjects()
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectPS");
 
-	matrixBufferDesc.ByteWidth = sizeof(CBPerFrameVS);
+	matrixBufferDesc.ByteWidth = sizeof(CBPerFrame);
 	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrameVS);
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameVS");
+
+	matrixBufferDesc.ByteWidth = sizeof(CBPerFrame);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrameDS);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameDS");
 
 	//Set states and shaders
 	switch (activeTechnique)
@@ -147,7 +159,7 @@ void LevelOfDetail::LoadPipelineObjects()
 		SetPhongLOD();
 		break;
 	default:
-		RenderNoLOD();
+		SetNoLOD();
 		break;
 	}
 }
@@ -190,18 +202,43 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	CBPerFrameVS* dataPtr;
+	CBPerFrame* dataPtr;
 
 	result = deviceContextRef->Map(cbPerFrameVS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::SetCBPerFrame: Failed to Map cbPerFrame");
 
-	dataPtr = static_cast<CBPerFrameVS*>(mappedResource.pData);
+	dataPtr = static_cast<CBPerFrame*>(mappedResource.pData);
 	dataPtr->view = XMMatrixTranspose(view.ToSIMD());
 	dataPtr->projection = XMMatrixTranspose(projection.ToSIMD());
 	deviceContextRef->Unmap(cbPerFrameVS, 0);
 
 	deviceContextRef->VSSetConstantBuffers(0, 1, &cbPerFrameVS);
+}
+
+void LevelOfDetail::SetCPNTDataPerFrame(matrix view, matrix projection)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	CBPerFrame* dataPtr;
+
+	result = deviceContextRef->Map(cbPerFrameDS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::SetCPNTDataPerFrame: Failed to Map cbPerFrame");
+
+	dataPtr = static_cast<CBPerFrame*>(mappedResource.pData);
+	dataPtr->view = XMMatrixTranspose(view.ToSIMD());
+	dataPtr->projection = XMMatrixTranspose(projection.ToSIMD());
+	deviceContextRef->Unmap(cbPerFrameDS, 0);
+
+	deviceContextRef->DSSetConstantBuffers(0, 1, &cbPerFrameDS);
+}
+void LevelOfDetail::SetCPNTDataPerObject(matrix world, float3 color, float tessellationFactor)
+{
+	SetCBPerObject(world, color, 1.0f);
+
+	//Sätt CBPerPatchHS i Hull-shadern
 }
 
 //Update frame-based values
@@ -478,7 +515,9 @@ void LevelOfDetail::RenderUnpoppingLOD()
 void LevelOfDetail::RenderCPNTLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	SetCBPerFrame(viewMatrix, projectionMatrix);
+	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
+
+
 
 	LoDObject* object = lodObjects[0];
 
@@ -490,7 +529,7 @@ void LevelOfDetail::RenderCPNTLOD()
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 	//Render
-	SetCBPerObject(worldMatrix, colors[0], 1.0f);
+	SetCPNTDataPerObject(worldMatrix, colors[0], 1.0f);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();
@@ -530,6 +569,16 @@ void LevelOfDetail::OnKeyDown(UINT8 key)
 		break;
 	case VK_TAB:
 		freelookCameraActive = !freelookCameraActive;
+		break;
+	case 'Z':
+		wireframeModeActive = !wireframeModeActive;
+
+		if (wireframeModeActive)
+			dx->SetRasterState(DirectXHandler::RasterState::WIREFRAME);
+		else
+			dx->SetRasterState(DirectXHandler::RasterState::CULL_BACK);
+
+		break;
 	default:
 		break;
 	}
@@ -573,6 +622,8 @@ void LevelOfDetail::SetUnpoppingLOD()
 {
 	activeTechnique = LoDTechnique::UNPOPPING;
 
+	dx->SetBlendState(Renderer::DirectXHandler::BlendState::ADDITIVE_ALPHA);
+
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
 	deviceContextRef->HSSetShader(nullptr, nullptr, 0);
@@ -587,15 +638,14 @@ void LevelOfDetail::SetCPNTLOD()
 {
 	activeTechnique = LoDTechnique::CPNT;
 
-	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
-	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
-	deviceContextRef->HSSetShader(CpntHS, nullptr, 0);
-	deviceContextRef->DSSetShader(CpntDS, nullptr, 0);
-	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+	deviceContextRef->IASetInputLayout(cpntVS->inputLayout);
+	deviceContextRef->VSSetShader(cpntVS->vertexShader, nullptr, 0);
+	deviceContextRef->HSSetShader(cpntHS, nullptr, 0);
+	deviceContextRef->DSSetShader(cpntDS, nullptr, 0);
+	deviceContextRef->PSSetShader(cpntPS, nullptr, 0);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
-	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 }
 
 void LevelOfDetail::SetPhongLOD()
@@ -604,8 +654,8 @@ void LevelOfDetail::SetPhongLOD()
 
 	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
 	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
-	deviceContextRef->HSSetShader(PhongHS, nullptr, 0);
-	deviceContextRef->DSSetShader(PhongDS, nullptr, 0);
+	deviceContextRef->HSSetShader(phongHS, nullptr, 0);
+	deviceContextRef->DSSetShader(phongDS, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);

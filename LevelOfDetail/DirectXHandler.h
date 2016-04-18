@@ -30,7 +30,7 @@ namespace Renderer
 
 	public:
 
-		enum RasterState { BACK, FRONT, NONE, WIREFRAME };
+		enum RasterState { CULL_BACK, CULL_FRONT, CULL_NONE, WIREFRAME };
 		enum BlendState { ADDITIVE_ALPHA, DISABLED };
 		enum DepthState { TEST_WRITE, TEST_NO_WRITE };
 

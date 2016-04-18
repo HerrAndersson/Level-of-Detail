@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------------------------------------------------
-| Pixel shader used for the rendering of static geometry.															   |	
+| Pixel shader used for the rendering of static geometry.															   |
 ----------------------------------------------------------------------------------------------------------------------*/
 Texture2D diffuse : register(t0);
 
@@ -24,5 +24,5 @@ float4 main(VS_OUT input) : SV_TARGET
 	float lightIntensity = saturate(dot(input.normal.xyz, lightDir));
 	float4 finalColor = saturate(float4(color, 1.0f) * lightIntensity);
 
-	return float4(finalColor.xyz, blendFactor);
+	return float4(finalColor.xyz, 1.0f);
 }

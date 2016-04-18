@@ -25,6 +25,7 @@ private:
 	float3 colors[100];
 	LoDTechnique activeTechnique;
 	bool freelookCameraActive;
+	bool wireframeModeActive;
 	float3 rotation;
 
 	matrix projectionMatrix;
@@ -44,20 +45,23 @@ private:
 
 	//Vertex shaders
 	VertexShaderData* defaultVS;
+	VertexShaderData* cpntVS;
 	//Hull shaders
-	ID3D11HullShader* CpntHS;
-	ID3D11HullShader* PhongHS;
+	ID3D11HullShader* cpntHS;
+	ID3D11HullShader* phongHS;
 	//Domain shaders
-	ID3D11DomainShader* CpntDS;
-	ID3D11DomainShader* PhongDS;
+	ID3D11DomainShader* cpntDS;
+	ID3D11DomainShader* phongDS;
 	//Pixel shaders
 	ID3D11PixelShader* defaultPS;
+	ID3D11PixelShader* cpntPS;
 
 	ID3D11SamplerState* samplerWrap;
 
 	ID3D11Buffer* cbPerObjectVS;
 	ID3D11Buffer* cbPerFrameVS;
 	ID3D11Buffer* cbPerObjectPS;
+	ID3D11Buffer* cbPerFrameDS;
 
 	void LoadAssets();
 	void LoadPipelineObjects();
@@ -65,6 +69,9 @@ private:
 
 	void SetCBPerObject(matrix world, float3 color, float blendFactor);
 	void SetCBPerFrame(matrix view, matrix projection);
+
+	void SetCPNTDataPerFrame(matrix view, matrix projection);
+	void SetCPNTDataPerObject(matrix world, float3 color, float tessellationFactor);
 	
 	void RenderNoLOD();
 	void RenderStaticLOD();

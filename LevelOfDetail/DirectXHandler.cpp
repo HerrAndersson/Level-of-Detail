@@ -223,17 +223,17 @@ namespace Renderer
 	{
 		switch (state)
 		{
-		case Renderer::DirectXHandler::RasterState::BACK:
+		case Renderer::DirectXHandler::RasterState::CULL_BACK:
 		{
 			deviceContext->RSSetState(rsBack);
 			break;
 		}
-		case Renderer::DirectXHandler::RasterState::FRONT:
+		case Renderer::DirectXHandler::RasterState::CULL_FRONT:
 		{
 			deviceContext->RSSetState(rsFront);
 			break;
 		}
-		case Renderer::DirectXHandler::RasterState::NONE:
+		case Renderer::DirectXHandler::RasterState::CULL_NONE:
 		{
 			deviceContext->RSSetState(rsNone);
 			break;

@@ -1,4 +1,12 @@
-// Output control point
+
+#define NUM_CONTROL_POINTS 3
+
+cbuffer bufferPerObject : register(b0)
+{
+	matrix viewMatrix;
+	matrix projectionMatrix;
+};
+
 struct HS_OUT
 {
 	float4 pos			: POSITION;
@@ -16,19 +24,20 @@ struct DS_OUT
 // Output patch constant data.
 struct HS_CONSTANT_DATA_OUTPUT
 {
-	float EdgeTessFactor[3]			: SV_TessFactor; // e.g. would be [4] for a quad domain
-	float InsideTessFactor			: SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
-	// TODO: change/add other stuff
+	float EdgeTessFactor[3]			: SV_TessFactor;
+	float InsideTessFactor			: SV_InsideTessFactor;
 };
-
-#define NUM_CONTROL_POINTS 3
 
 [domain("tri")]
 DS_OUT main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_DomainLocation, const OutputPatch<HS_OUT, NUM_CONTROL_POINTS> patch)
 {
 	DS_OUT output;
 
-	output.pos = patch[0].pos;
+	float4 p = domain.x * patch[0].pos + domain.y * patch[1].pos + domain.z * patch[2].pos;
+
+	output.pos = mul(p, viewMatrix);
+	output.pos = mul(output.pos, projectionMatrix);
+
 	output.uv = patch[0].uv;
 	output.normal = patch[0].normal;
 

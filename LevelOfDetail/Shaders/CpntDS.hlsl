@@ -1,13 +1,16 @@
-struct DS_OUTPUT
+// Output control point
+struct HS_OUT
 {
-	float4 vPosition  : SV_POSITION;
-	// TODO: change/add other stuff
+	float4 pos			: POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
 };
 
-// Output control point
-struct HS_CONTROL_POINT_OUTPUT
+struct DS_OUT
 {
-	float3 vPosition : WORLDPOS; 
+	float4 pos			: SV_POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
 };
 
 // Output patch constant data.
@@ -21,15 +24,13 @@ struct HS_CONSTANT_DATA_OUTPUT
 #define NUM_CONTROL_POINTS 3
 
 [domain("tri")]
-DS_OUTPUT main(
-	HS_CONSTANT_DATA_OUTPUT input,
-	float3 domain : SV_DomainLocation,
-	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)
+DS_OUT main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_DomainLocation, const OutputPatch<HS_OUT, NUM_CONTROL_POINTS> patch)
 {
-	DS_OUTPUT Output;
+	DS_OUT output;
 
-	Output.vPosition = float4(
-		patch[0].vPosition*domain.x+patch[1].vPosition*domain.y+patch[2].vPosition*domain.z,1);
+	output.pos = patch[0].pos;
+	output.uv = patch[0].uv;
+	output.normal = patch[0].normal;
 
-	return Output;
+	return output;
 }

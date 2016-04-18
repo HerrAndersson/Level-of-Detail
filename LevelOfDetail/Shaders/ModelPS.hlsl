@@ -11,15 +11,18 @@ cbuffer bufferPerObject : register(b0)
 	float blendFactor;
 };
 
-struct VS_OUT
+struct DS_OUT
 {
 	float4 pos			: SV_POSITION;
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 };
 
-float4 main(VS_OUT input) : SV_TARGET
+float4 main(DS_OUT input) : SV_TARGET
 {
+
+	return float4(1,0,1,1);
+
 	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, 100));
 	float lightIntensity = saturate(dot(input.normal.xyz, lightDir));
 	float4 finalColor = saturate(float4(color, 1.0f) * lightIntensity);

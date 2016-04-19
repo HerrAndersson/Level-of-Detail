@@ -107,7 +107,6 @@
     <ClInclude Include="BufferStructs.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="DirectXHandler.h" />
-    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MouseHandler.h" />
     <ClInclude Include="ScreenGrab.h" />
@@ -125,7 +124,6 @@
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="DirectXHandler.cpp" />
-    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="MouseHandler.cpp" />
     <ClCompile Include="ScreenGrab.cpp" />

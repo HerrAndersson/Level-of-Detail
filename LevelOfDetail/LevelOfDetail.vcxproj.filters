@@ -9,9 +9,6 @@
     <ClCompile Include="Win32Application.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng.cpp">
-      <Filter>AssetHandling</Filter>
-    </ClCompile>
     <ClCompile Include="WICTextureLoader.cpp">
       <Filter>AssetHandling</Filter>
     </ClCompile>
@@ -53,9 +50,6 @@
     </ClInclude>
     <ClInclude Include="Win32Application.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="lodepng.h">
-      <Filter>AssetHandling</Filter>
     </ClInclude>
     <ClInclude Include="WICTextureLoader.h">
       <Filter>AssetHandling</Filter>

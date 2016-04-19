@@ -21,5 +21,7 @@ struct CBPerObjectPS
 
 struct CBPerPatchHS
 {
+	float distanceToCamera;
 	float tessellationFactor;
+	XMFLOAT2 pad;
 };

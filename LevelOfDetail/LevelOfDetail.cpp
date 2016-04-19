@@ -37,6 +37,7 @@ void LevelOfDetail::OnInit()
 void LevelOfDetail::OnDestroy()
 {
 	delete dx;
+
 	delete defaultVS;
 	delete cpntVS;
 
@@ -48,9 +49,12 @@ void LevelOfDetail::OnDestroy()
 	SAFE_RELEASE(cpntPS);
 
 	SAFE_RELEASE(samplerWrap);
+
 	SAFE_RELEASE(cbPerObjectVS);
 	SAFE_RELEASE(cbPerFrameVS);
 	SAFE_RELEASE(cbPerObjectPS);
+	SAFE_RELEASE(cbPerFrameDS);
+	SAFE_RELEASE(cbPerPatchHS);
 
 	for (auto o : lodObjects)
 		delete o;
@@ -123,22 +127,27 @@ void LevelOfDetail::LoadPipelineObjects()
 	matrixBufferDesc.ByteWidth = sizeof(CBPerObjectVS);
 	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObjectVS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectVS");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectVS. " + GetErrorMessageFromHRESULT(result));
 
 	matrixBufferDesc.ByteWidth = sizeof(CBPerObjectPS);
 	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObjectPS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectPS");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectPS. " +GetErrorMessageFromHRESULT(result));
 
 	matrixBufferDesc.ByteWidth = sizeof(CBPerFrame);
 	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrameVS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameVS");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameVS. " + GetErrorMessageFromHRESULT(result));
 
 	matrixBufferDesc.ByteWidth = sizeof(CBPerFrame);
 	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerFrameDS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameDS");
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameDS. " + GetErrorMessageFromHRESULT(result));
+
+	matrixBufferDesc.ByteWidth = sizeof(CBPerPatchHS);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerPatchHS);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerPatchHS. " + GetErrorMessageFromHRESULT(result));
 
 	//Set states and shaders
 	switch (activeTechnique)
@@ -238,7 +247,21 @@ void LevelOfDetail::SetCPNTDataPerObject(matrix world, float3 color, float tesse
 {
 	SetCBPerObject(world, color, 1.0f);
 
-	//Sätt CBPerPatchHS i Hull-shadern
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	CBPerPatchHS* dataPtr;
+
+	result = deviceContextRef->Map(cbPerPatchHS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+		throw std::runtime_error("LevelOfDetail::SetCPNTDataPerFrame: Failed to Map cbPerFrame");
+
+	dataPtr = static_cast<CBPerPatchHS*>(mappedResource.pData);
+	dataPtr->distanceToCamera = camera.GetPosition().Length();
+	dataPtr->tessellationFactor = 10.0f;
+	deviceContextRef->Unmap(cbPerPatchHS, 0);
+
+	deviceContextRef->HSSetConstantBuffers(0, 1, &cbPerPatchHS);
 }
 
 //Update frame-based values
@@ -312,7 +335,7 @@ void LevelOfDetail::OnRender()
 	//	rotation.z += increment;
 	//}
 
-	dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
+	//dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
 
 	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 }
@@ -517,8 +540,6 @@ void LevelOfDetail::RenderCPNTLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
-
-
 
 	LoDObject* object = lodObjects[0];
 

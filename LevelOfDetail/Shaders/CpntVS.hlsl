@@ -2,7 +2,7 @@
 | 						   |
 ----------------------------------------------------------------------------------------------------------------------*/
 
-cbuffer bufferPerObject : register(b1)
+cbuffer cbPerObject : register(b1)
 {
 	matrix worldMatrix;
 };
@@ -28,7 +28,7 @@ VS_OUT main(VS_IN input)
 	float4 pos = mul(float4(input.pos, 1.0f), worldMatrix);
 
 	output.pos = pos;
-	output.normal = mul(input.normal, (float3x3)worldMatrix);
+	output.normal = normalize(mul(input.normal, (float3x3)worldMatrix));
 	output.uv = input.uv;
 
 	return output;

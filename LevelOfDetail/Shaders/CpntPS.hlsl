@@ -5,7 +5,7 @@ Texture2D diffuse : register(t0);
 
 SamplerState samplerWrap : register(s0);
 
-cbuffer bufferPerObject : register(b0)
+cbuffer cbPerObject : register(b0)
 {
 	float3 color;
 	float blendFactor;

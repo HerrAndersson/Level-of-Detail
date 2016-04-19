@@ -62,6 +62,7 @@ private:
 	ID3D11Buffer* cbPerFrameVS;
 	ID3D11Buffer* cbPerObjectPS;
 	ID3D11Buffer* cbPerFrameDS;
+	ID3D11Buffer* cbPerPatchHS;
 
 	void LoadAssets();
 	void LoadPipelineObjects();

@@ -1,5 +1,6 @@
 #include "AssetManager.h"
 #include "WICTextureLoader.h"
+#include "Utility.h"
 
 Model* AssetManager::LoadModel(ID3D11Device* device, string file_path)
 {
@@ -196,9 +197,8 @@ Model* AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path)
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = faces.data();
 	HRESULT result = device->CreateBuffer(&bufferDesc, &data, &vertexBuffer);
-
 	if (FAILED(result))
-		throw runtime_error("AssetManager(LoadModelNoUV): Failed to create vertexBuffer");
+		throw runtime_error("AssetManager::LoadModelNoUV: Failed to create vertexBuffer. " + GetErrorMessageFromHRESULT(result));
 
 	model->vertexBuffer = vertexBuffer;
 
@@ -207,9 +207,17 @@ Model* AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path)
 
 ID3D11ShaderResourceView* AssetManager::LoadTexture(ID3D11Device* device, string file_path)
 {
+	HRESULT hr;
 	ID3D11ShaderResourceView* texture;
 	wstring widestr = wstring(file_path.begin(), file_path.end());
-	DirectX::CreateWICTextureFromFile(device, widestr.c_str(), nullptr, &texture, 0);
+
+	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (FAILED(hr))
+		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
+
+	hr = DirectX::CreateWICTextureFromFile(device, widestr.c_str(), nullptr, &texture, 0);
+	if (FAILED(hr))
+		throw runtime_error("AssetManager::LoadTexture: Failed to Load texture. " + GetErrorMessageFromHRESULT(hr));
 
 	return texture;
 }

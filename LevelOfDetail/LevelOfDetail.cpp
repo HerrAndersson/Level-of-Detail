@@ -21,7 +21,7 @@ void LevelOfDetail::OnInit()
 	deviceContextRef = dx->GetDeviceContext();
 
 	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
-	camera.SetMoveSpeed(0.1f);
+	camera.SetMoveSpeed(1.1f);
 	camera.SetTurnSpeed(XM_PI);
 	freelookCamera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::MOUSE);
 	freelookCamera.SetMoveSpeed(10.0f);
@@ -64,15 +64,20 @@ void LevelOfDetail::LoadAssets()
 {
 	LoDObject* object = new LoDObject();
 
-	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
-	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
-	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
-
 	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
-	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
-	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
+	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
+	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
+	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
+
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
+	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
+	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
 
 
 	lodObjects.push_back(object);

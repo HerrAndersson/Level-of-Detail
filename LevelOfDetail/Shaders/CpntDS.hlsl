@@ -44,7 +44,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 [domain("tri")]
 DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_DomainLocation, const OutputPatch<HS_OUT, NUM_CONTROL_POINTS> patch)
 {
-	DS_OUT output;
+	DS_OUT output = (DS_OUT)0;
 
 	// The barycentric coordinates
 	float fU = domainLocation.x;
@@ -83,14 +83,12 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 		hsConstData.N011 * fU * fV +
 		hsConstData.N101 * fW * fV;
 
-	normal = normalize(normal);
-
 	float4 p = mul(float4(position, 1.0f), viewMatrix);
 	p = mul(p, projectionMatrix);
 
 	output.pos = p;
 	output.uv = patch[0].uv * fW + patch[1].uv * fU + patch[2].uv * fV;
-	output.normal = normal;
+	output.normal = normalize(normal);
 
 	return output;
 }

@@ -87,12 +87,12 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 [domain("tri")]
 [partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
-[outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
+[outputcontrolpoints(3)]
 [maxtessfactor(15.0f)]
 HS_OUT main(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint cpid : SV_OutputControlPointID, uint patchID : SV_PrimitiveID )
 {
-	HS_OUT output;
+	HS_OUT output = (HS_OUT)0;
 
 	output.pos = inputPatch[cpid].pos;
 	output.uv = inputPatch[cpid].uv;

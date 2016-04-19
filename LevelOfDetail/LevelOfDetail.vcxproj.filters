@@ -36,6 +36,9 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenGrab.cpp">
+      <Filter>AssetHandling</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LevelOfDetail.h" />
@@ -89,6 +92,9 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenGrab.h">
+      <Filter>AssetHandling</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

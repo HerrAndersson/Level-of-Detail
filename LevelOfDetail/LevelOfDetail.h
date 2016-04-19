@@ -65,7 +65,6 @@ private:
 
 	void LoadAssets();
 	void LoadPipelineObjects();
-	float RandomPercent();
 
 	void SetCBPerObject(matrix world, float3 color, float blendFactor);
 	void SetCBPerFrame(matrix view, matrix projection);
@@ -84,6 +83,8 @@ private:
 	void SetUnpoppingLOD();
 	void SetCPNTLOD();
 	void SetPhongLOD();
+
+	float RandomPercent();
 
 public:
 

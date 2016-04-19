@@ -312,6 +312,7 @@ void LevelOfDetail::OnRender()
 	//	rotation.z += increment;
 	//}
 
+	dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
 
 	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 }

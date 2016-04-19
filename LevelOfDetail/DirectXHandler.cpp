@@ -1,4 +1,9 @@
 #include "DirectXHandler.h"
+#include "Utility.h"
+
+//Used for saving an ID3D11Texture2D to an image
+#include <wincodec.h>
+#include "ScreenGrab.h"
 
 namespace Renderer
 {
@@ -17,40 +22,36 @@ namespace Renderer
 		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.OutputWindow = hwnd;
 		swapChainDesc.SampleDesc.Count = 1;
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.Windowed = true;
-
 		swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
+	
 		//Create swap chain
 		D3D_FEATURE_LEVEL featLvl = D3D_FEATURE_LEVEL_11_0;
 		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featLvl, 1, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating swap chain");
+			throw std::runtime_error("DirectXHandler: Error creating swap chain. " + GetErrorMessageFromHRESULT(result));
 
-		//Get back buffer pointer and get render target view with it
+		//Get back buffer pointer and create render target view with it
 		ID3D11Texture2D* backBufferPointer;
 		result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPointer);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Could not get swap chain pointer");
+			throw std::runtime_error("DirectXHandler: Could not get swap chain buffer pointer. " + GetErrorMessageFromHRESULT(result));
 
 		result = device->CreateRenderTargetView(backBufferPointer, NULL, &rtvBackBuffer);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating render target view ");
+			throw std::runtime_error("DirectXHandler: Error creating render target view. " + GetErrorMessageFromHRESULT(result));
 
-		backBufferPointer->Release();
-		backBufferPointer = nullptr;
-
-		ID3D11Texture2D* depthStencilBuffer;
+		SAFE_RELEASE(backBufferPointer);
 
 		///////////////////////////////////////////////////////// Depth buffer, DSV /////////////////////////////////////////////////////////
+		ID3D11Texture2D* depthStencilBuffer;
 		D3D11_TEXTURE2D_DESC depthBufferDesc;
 		ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 		depthBufferDesc.Width = (UINT)SCREEN_WIDTH;
@@ -65,12 +66,12 @@ namespace Renderer
 		depthBufferDesc.CPUAccessFlags = 0;
 		depthBufferDesc.MiscFlags = 0;
 
-		// Create the texture for the depth buffer
+		//Create the texture for the depth buffer
 		result = device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating Depth texture");
+			throw std::runtime_error("DirectXHandler: Error creating Depth texture. " + GetErrorMessageFromHRESULT(result));
 
-		//Stencil view description.
+		//Stencil view description
 		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 		ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 		depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -80,7 +81,7 @@ namespace Renderer
 		//Create the depth stencil view
 		result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &dsvBackBuffer);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating Depth stencil view");
+			throw std::runtime_error("DirectXHandler: Error creating Depth stencil view. " + GetErrorMessageFromHRESULT(result));
 
 		SAFE_RELEASE(depthStencilBuffer);
 
@@ -95,7 +96,7 @@ namespace Renderer
 		rasterDesc.DepthClipEnable = true;
 		rasterDesc.FillMode = D3D11_FILL_SOLID;
 		rasterDesc.FrontCounterClockwise = false;
-		rasterDesc.MultisampleEnable = false;
+		rasterDesc.MultisampleEnable = true;
 		rasterDesc.ScissorEnable = false;
 		rasterDesc.SlopeScaledDepthBias = 0.0f;
 
@@ -103,22 +104,22 @@ namespace Renderer
 		rasterDesc.CullMode = D3D11_CULL_BACK;
 		result = device->CreateRasterizerState(&rasterDesc, &rsBack);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating rasterizer state BACK");
+			throw std::runtime_error("DirectXHandler: Error creating rasterizer state BACK. " + GetErrorMessageFromHRESULT(result));
 
 		rasterDesc.CullMode = D3D11_CULL_FRONT;
 		result = device->CreateRasterizerState(&rasterDesc, &rsFront);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating rasterizer state FRONT");
+			throw std::runtime_error("DirectXHandler: Error creating rasterizer state FRONT. " + GetErrorMessageFromHRESULT(result));
 
 		rasterDesc.CullMode = D3D11_CULL_NONE;
 		result = device->CreateRasterizerState(&rasterDesc, &rsNone);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating rasterizer state NONE");
+			throw std::runtime_error("DirectXHandler: Error creating rasterizer state NONE. " + GetErrorMessageFromHRESULT(result));
 
 		rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
 		result = device->CreateRasterizerState(&rasterDesc, &rsWireframe);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME");
+			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME. " + GetErrorMessageFromHRESULT(result));
 
 		/////////////////////////////////////////////////////// Depth stencil states ///////////////////////////////////////////////////////
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -142,15 +143,14 @@ namespace Renderer
 		//Create depth state with test enabled and write enabled
 		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE");
+			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
 
 		//Create depth state with test enabled and write disabled
 		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD");
-
+			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////
 		D3D11_BLEND_DESC omDesc;
@@ -166,22 +166,17 @@ namespace Renderer
 
 		result = device->CreateBlendState(&omDesc, &bsAdditiveAlphaEnable);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating blend ENABLE");
+			throw std::runtime_error("DirectXHandler: Error creating blend ENABLE. " + GetErrorMessageFromHRESULT(result));
 
 		//Create blend disable
 		omDesc.RenderTarget[0].BlendEnable = false;
 		result = device->CreateBlendState(&omDesc, &bsDisable);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating blend DISABLE");
+			throw std::runtime_error("DirectXHandler: Error creating blend DISABLE. " + GetErrorMessageFromHRESULT(result));
 
 		//////////////////////////////////////////////////////////// Other ////////////////////////////////////////////////////////////
 		//Set up viewport
-		viewport.Width = (float)SCREEN_WIDTH;
-		viewport.Height = (float)SCREEN_HEIGHT;
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-		viewport.TopLeftX = 0.0f;
-		viewport.TopLeftY = 0.0f;
+		viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT, 0.0f, 1.0f);
 
 		deviceContext->RSSetState(rsBack);
 		deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 0);
@@ -217,6 +212,20 @@ namespace Renderer
 	ID3D11DeviceContext* DirectXHandler::GetDeviceContext()
 	{
 		return deviceContext;
+	}
+
+	void DirectXHandler::SaveBackBufferToFile(wstring filename)
+	{
+		ID3D11Texture2D* backBuffer = nullptr;
+		HRESULT hr = swapChain->GetBuffer(0, __uuidof(*backBuffer), (LPVOID*)&backBuffer);
+		if (SUCCEEDED(hr))
+		{
+			hr = SaveWICTextureToFile(deviceContext, backBuffer,
+				GUID_ContainerFormatPng, filename.c_str());
+			backBuffer->Release();
+		}
+		if (FAILED(hr))
+			throw std::runtime_error("DirectXHandler::SaveBackBufferToFile: Failed to save image. " + GetErrorMessageFromHRESULT(hr));
 	}
 
 	void DirectXHandler::SetRasterState(RasterState state)

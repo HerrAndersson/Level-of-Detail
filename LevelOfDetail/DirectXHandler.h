@@ -15,7 +15,7 @@ namespace Renderer
 		ID3D11Device* device;
 		ID3D11DeviceContext* deviceContext;
 
-		D3D11_VIEWPORT viewport;
+		CD3D11_VIEWPORT viewport;
 		
 		ID3D11DepthStencilState* dss_TestE_WriteE;
 		ID3D11DepthStencilState* dss_TestE_WriteD;
@@ -39,6 +39,7 @@ namespace Renderer
 
 		ID3D11Device* GetDevice();
 		ID3D11DeviceContext* GetDeviceContext();
+		void SaveBackBufferToFile(wstring filename);
 
 		void SetRasterState(RasterState state);
 		void SetBlendState(BlendState state);

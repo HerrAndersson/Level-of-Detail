@@ -21,7 +21,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 	}
 	catch (const std::exception& e)
 	{
-		wstring ws = wstring(string(e.what()).begin(), string(e.what()).end());
+		string s = e.what();
+		wstring ws = wstring(s.begin(), s.end());
 		MessageBox(NULL, ws.c_str(), L"Error", MB_ICONERROR | MB_DEFAULT_DESKTOP_ONLY);
 	}
 	return 0;

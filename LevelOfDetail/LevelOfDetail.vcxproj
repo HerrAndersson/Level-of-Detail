@@ -110,6 +110,7 @@
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MouseHandler.h" />
+    <ClInclude Include="ScreenGrab.h" />
     <ClInclude Include="ShaderHandler.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="WICTextureLoader.h" />
@@ -127,6 +128,7 @@
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="MouseHandler.cpp" />
+    <ClCompile Include="ScreenGrab.cpp" />
     <ClCompile Include="ShaderHandler.cpp" />
     <ClCompile Include="WICTextureLoader.cpp" />
     <ClCompile Include="Win32Application.cpp" />

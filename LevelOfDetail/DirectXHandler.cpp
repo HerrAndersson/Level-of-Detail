@@ -122,35 +122,58 @@ namespace Renderer
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME. " + GetErrorMessageFromHRESULT(result));
 
 		/////////////////////////////////////////////////////// Depth stencil states ///////////////////////////////////////////////////////
-		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+		//D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+		//ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+		//depthStencilDesc.DepthEnable = true;
+		//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-		depthStencilDesc.DepthEnable = true;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		depthStencilDesc.StencilEnable = false;
-		depthStencilDesc.StencilReadMask = 0xFF;
-		depthStencilDesc.StencilWriteMask = 0xFF;
-		depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-		depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-		depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-		depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		////Create depth state with test enabled and write enabled
+		//result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
+		//if (FAILED(result))
+		//	throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
 
-		//Create depth state with test enabled and write enabled
-		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
+		////Create depth state with test enabled and write disabled
+		//D3D11_DEPTH_STENCIL_DESC depthStencilDesc2;
+		//ZeroMemory(&depthStencilDesc2, sizeof(D3D11_DEPTH_STENCIL_DESC));
+		//depthStencilDesc2.DepthEnable = true;
+		//depthStencilDesc2.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		//depthStencilDesc2.DepthFunc = D3D11_COMPARISON_LESS;
+
+		//result = device->CreateDepthStencilState(&depthStencilDesc2, &dss_TestE_WriteD);
+		//if (FAILED(result))
+		//	throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
+
+
+
+
+
+		D3D11_DEPTH_STENCIL_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+
+		desc.DepthEnable = true;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_LESS;
+		desc.StencilEnable = false;
+		desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+		desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.BackFace = desc.FrontFace;
+
+		//Create depth stencil state with z-test and z-write enabled
+		result = device->CreateDepthStencilState(&desc, &dss_TestE_WriteE);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
 
-		//Create depth state with test enabled and write disabled
-		depthStencilDesc.DepthEnable = true;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
+		//Create depth stencil state with z-test enabled and z-write disabled
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		result = device->CreateDepthStencilState(&desc, &dss_TestE_WriteD);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
+
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////
 		D3D11_BLEND_DESC omDesc;

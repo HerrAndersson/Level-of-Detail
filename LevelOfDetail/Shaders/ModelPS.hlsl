@@ -20,11 +20,11 @@ struct VS_OUT
 
 float4 main(VS_OUT input) : SV_TARGET
 {
-	float3 col = diffuse.Sample(samplerWrap, input.uv);
+	//float3 color = diffuse.Sample(samplerWrap, input.uv);
 
 	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, 100));
 	float lightIntensity = saturate(dot(input.normal.xyz, lightDir));
-	float4 finalColor = saturate(float4(col, 1.0f) * lightIntensity);
+	float4 finalColor = saturate(float4(color, 1.0f) * lightIntensity);
 
 	return float4(finalColor.xyz, blendFactor);
 }

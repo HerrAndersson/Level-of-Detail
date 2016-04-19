@@ -89,7 +89,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 [outputtopology("triangle_cw")]
 [patchconstantfunc("CalcHSPatchConstants")]
 [outputcontrolpoints(3)]
-[maxtessfactor(15.0f)]
+//[maxtessfactor(15.0f)]
 HS_OUT main(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint cpid : SV_OutputControlPointID, uint patchID : SV_PrimitiveID )
 {
 	HS_OUT output = (HS_OUT)0;

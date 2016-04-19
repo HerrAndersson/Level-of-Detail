@@ -211,10 +211,6 @@ ID3D11ShaderResourceView* AssetManager::LoadTexture(ID3D11Device* device, string
 	ID3D11ShaderResourceView* texture;
 	wstring widestr = wstring(file_path.begin(), file_path.end());
 
-	hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	if (FAILED(hr))
-		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
-
 	hr = DirectX::CreateWICTextureFromFile(device, widestr.c_str(), nullptr, &texture, 0);
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed to Load texture. " + GetErrorMessageFromHRESULT(hr));

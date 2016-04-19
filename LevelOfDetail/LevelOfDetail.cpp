@@ -1,6 +1,14 @@
 #include "stdafx.h"
 #include "LevelOfDetail.h"
 
+/*
+
+Every calculation of distance between the camera and the object assumes that the object is at (0,0,0). If the object should move it needs to hold its own position. 
+The distance would then be calculated using the vector between camPos and objPos
+
+
+*/
+
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
 	activeTechnique(LoDTechnique::CPNT),
@@ -21,7 +29,7 @@ void LevelOfDetail::OnInit()
 	deviceContextRef = dx->GetDeviceContext();
 
 	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
-	camera.SetMoveSpeed(1.1f);
+	camera.SetMoveSpeed(0.3f);
 	camera.SetTurnSpeed(XM_PI);
 	freelookCamera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::MOUSE);
 	freelookCamera.SetMoveSpeed(10.0f);
@@ -62,23 +70,31 @@ void LevelOfDetail::OnDestroy()
 
 void LevelOfDetail::LoadAssets()
 {
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (FAILED(hr))
+		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
+
 	LoDObject* object = new LoDObject();
 
-	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
-	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
-	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
+	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
+	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
 
 	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
 	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
 	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
 
+	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+
 	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
 	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
 	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-
 
 	lodObjects.push_back(object);
 }
@@ -263,7 +279,7 @@ void LevelOfDetail::SetCPNTDataPerObject(matrix world, float3 color, float tesse
 
 	dataPtr = static_cast<CBPerPatchHS*>(mappedResource.pData);
 	dataPtr->distanceToCamera = camera.GetPosition().Length();
-	dataPtr->tessellationFactor = 10.0f;
+	dataPtr->tessellationFactor = tessellationFactor;
 	deviceContextRef->Unmap(cbPerPatchHS, 0);
 
 	deviceContextRef->HSSetConstantBuffers(0, 1, &cbPerPatchHS);
@@ -493,8 +509,6 @@ void LevelOfDetail::RenderUnpoppingLOD()
 	else
 	{
 		//Decide lod-level of objects and update blend timer etc
-		//Only works for objects at (0,0,0). If they should be spread out they need to hold their own position, and the length would be of the vector from camPos to objPos
-
 		float3 camPos = camera.GetPosition();
 		float length = camPos.Length();
 
@@ -534,6 +548,7 @@ void LevelOfDetail::RenderUnpoppingLOD()
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 		//Render current index
+		//dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		SetCBPerObject(worldMatrix, colors[0], 1.0f);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
@@ -556,7 +571,7 @@ void LevelOfDetail::RenderCPNTLOD()
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 	//Render
-	SetCPNTDataPerObject(worldMatrix, colors[0], 1.0f);
+	SetCPNTDataPerObject(worldMatrix, colors[0], 2.0f);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();

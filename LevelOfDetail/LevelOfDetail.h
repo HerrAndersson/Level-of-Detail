@@ -27,6 +27,7 @@ private:
 	bool freelookCameraActive;
 	bool wireframeModeActive;
 	float3 rotation;
+	int objectIndex;
 
 	matrix projectionMatrix;
 	matrix viewMatrix;
@@ -75,11 +76,11 @@ private:
 	void SetCPNTDataPerFrame(matrix view, matrix projection);
 	void SetCPNTDataPerObject(matrix world, float3 color, float tessellationFactor);
 	
-	void RenderNoLOD();
-	void RenderStaticLOD();
-	void RenderUnpoppingLOD();
-	void RenderCPNTLOD();
-	void RenderPhongLOD();
+	void RenderNoLOD(LoDObject* object);
+	void RenderStaticLOD(LoDObject* object);
+	void RenderUnpoppingLOD(LoDObject* object);
+	void RenderCPNTLOD(LoDObject* object);
+	void RenderPhongLOD(LoDObject* object);
 
 	void SetNoLOD();
 	void SetStaticLOD();

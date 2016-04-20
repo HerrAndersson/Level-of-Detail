@@ -14,7 +14,8 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	activeTechnique(LoDTechnique::PHONG),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
-	rotation(0,0,0)
+	rotation(0,0,0),
+	objectIndex(0)
 {
 	for (int i = 0; i < 100; i++)
 	{
@@ -76,34 +77,40 @@ void LevelOfDetail::LoadAssets()
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
-	LoDObject* object = new LoDObject();
+	LoDObject* bunny = new LoDObject();
+	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
+	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
+	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	lodObjects.push_back(bunny);
 
-	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
-	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
-	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	LoDObject* box = new LoDObject();
+	box->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	box->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
+	box->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
+	box->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
+	lodObjects.push_back(box);
 
-	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
-	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
-	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
+	LoDObject* camel = new LoDObject();
+	camel->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "camel.png"));
+	camel->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	camel->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	camel->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	lodObjects.push_back(camel);
 
-	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	LoDObject* cylinder = new LoDObject();
+	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	lodObjects.push_back(cylinder);
 
-	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-
-	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-
-	lodObjects.push_back(object);
+	LoDObject* cube = new LoDObject();
+	cube->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	cube->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
+	cube->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
+	cube->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
+	lodObjects.push_back(cube);
 }
 
 void LevelOfDetail::LoadPipelineObjects()
@@ -327,25 +334,28 @@ void LevelOfDetail::OnUpdate()
 //Render the scene
 void LevelOfDetail::OnRender()
 {
+
+	LoDObject* object = lodObjects[objectIndex];
+
 	switch (activeTechnique)
 	{
 	case LoDTechnique::NO_LOD:
-		RenderNoLOD();
+		RenderNoLOD(object);
 		break;
 	case LoDTechnique::STATIC:
-		RenderStaticLOD();
+		RenderStaticLOD(object);
 		break;
 	case LoDTechnique::UNPOPPING:
-		RenderUnpoppingLOD();
+		RenderUnpoppingLOD(object);
 		break;
 	case LoDTechnique::CPNT:
-		RenderCPNTLOD();
+		RenderCPNTLOD(object);
 		break;
 	case LoDTechnique::PHONG:
-		RenderPhongLOD();
+		RenderPhongLOD(object);
 		break;
 	default:
-		RenderNoLOD();
+		RenderNoLOD(object);
 		break;
 	}
 
@@ -370,12 +380,10 @@ void LevelOfDetail::OnRender()
 	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 }
 
-void LevelOfDetail::RenderNoLOD()
+void LevelOfDetail::RenderNoLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
-
-	LoDObject* object = lodObjects[0];
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -395,12 +403,10 @@ void LevelOfDetail::RenderNoLOD()
 	dx->EndScene();
 }
 
-void LevelOfDetail::RenderStaticLOD()
+void LevelOfDetail::RenderStaticLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
-
-	LoDObject* object = lodObjects[0];
 
 	//Decide lod-level
 	float3 camPos = camera.GetPosition();
@@ -427,12 +433,10 @@ void LevelOfDetail::RenderStaticLOD()
 	dx->EndScene();
 }
 
-void LevelOfDetail::RenderUnpoppingLOD()
+void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
-
-	LoDObject* object = lodObjects[0];
 
 	if (object->unpopBlendTimerActive)
 	{
@@ -565,12 +569,10 @@ void LevelOfDetail::RenderUnpoppingLOD()
 	dx->EndScene();
 }
 
-void LevelOfDetail::RenderCPNTLOD()
+void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
-
-	LoDObject* object = lodObjects[0];
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -586,12 +588,10 @@ void LevelOfDetail::RenderCPNTLOD()
 	dx->EndScene();
 }
 
-void LevelOfDetail::RenderPhongLOD()
+void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
-
-	LoDObject* object = lodObjects[0];
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -614,35 +614,52 @@ void LevelOfDetail::OnKeyDown(UINT8 key)
 
 	switch (key)
 	{
-	case '0':
-		SetNoLOD();
-		break;
-	case '1':
-		SetStaticLOD();
-		break;
-	case '2':
-		SetUnpoppingLOD();
-		break;
-	case '3':
-		SetCPNTLOD();
-		break;
-	case '4':
-		SetPhongLOD();
-		break;
-	case VK_TAB:
-		freelookCameraActive = !freelookCameraActive;
-		break;
-	case 'Z':
-		wireframeModeActive = !wireframeModeActive;
+		case '0':
+			SetNoLOD();
+			break;
+		case '1':
+			SetStaticLOD();
+			break;
+		case '2':
+			SetUnpoppingLOD();
+			break;
+		case '3':
+			SetCPNTLOD();
+			break;
+		case '4':
+			SetPhongLOD();
+			break;
+		case VK_TAB:
+			freelookCameraActive = !freelookCameraActive;
+			break;
+		case VK_SHIFT:
+		{
+			wireframeModeActive = !wireframeModeActive;
 
-		if (wireframeModeActive)
-			dx->SetRasterState(DirectXHandler::RasterState::WIREFRAME);
-		else
-			dx->SetRasterState(DirectXHandler::RasterState::CULL_BACK);
+			if (wireframeModeActive)
+				dx->SetRasterState(DirectXHandler::RasterState::WIREFRAME);
+			else
+				dx->SetRasterState(DirectXHandler::RasterState::CULL_BACK);
 
-		break;
-	default:
-		break;
+			break;
+		}
+		case 'Z':
+			objectIndex = 0;
+			break;
+		case 'X':
+			objectIndex = 1;
+			break;
+		case 'C':
+			objectIndex = 2;
+			break;
+		case 'V':
+			objectIndex = 3;
+			break;
+		case 'B':
+			objectIndex = 4;
+			break;
+		default:
+			break;
 	}
 }
 

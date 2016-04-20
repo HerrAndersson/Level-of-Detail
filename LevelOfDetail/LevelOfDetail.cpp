@@ -88,10 +88,15 @@ void LevelOfDetail::LoadAssets()
 	//object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
 	//object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
 
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+
 	object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
+	object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
 
 	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));

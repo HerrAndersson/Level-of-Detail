@@ -46,22 +46,22 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 {
 	DS_OUT output = (DS_OUT)0;
 
-	// The barycentric coordinates
+	//The barycentric coordinates
 	float u = domainLocation.x;
 	float v = domainLocation.y;
 	float w = domainLocation.z;
 
-	// Precompute squares 
+	//Precompute squares 
 	float uu = u * u;
 	float vv = v * v;
 	float ww = w * w;
 
-	// Precompute squares * 3 
+	//Precompute squares * 3 
 	float uu3 = uu * 3.0f;
 	float vv3 = vv * 3.0f;
 	float ww3 = ww * 3.0f;
 
-	// Compute position from cubic control points and barycentric coords
+	//Compute position from cubic control points and barycentric coords
 	float3 position = 
 		patch[0].pos.xyz * ww * w +
 		patch[1].pos.xyz * uu * u +
@@ -74,7 +74,7 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 		hsConstData.B012 * u * vv3 +
 		hsConstData.B111 * 6.0f * w * u * v;
 
-	// Compute normal from quadratic control points and barycentric coords
+	//Compute normal from quadratic control points and barycentric coords
 	float3 normal = 
 		patch[0].normal * ww +
 		patch[1].normal * uu +

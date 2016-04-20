@@ -52,9 +52,9 @@ Model* AssetManager::LoadModel(ID3D11Device* device, string file_path)
 			}
 			else if (command == "f")
 			{
-				int vertexIndex[3];
-				int uvIndex[3];
-				int normalIndex[3];
+				int vertexIndex[3] = { 0,0,0 };
+				int uvIndex[3] = { 0,0,0 };
+				int normalIndex[3] = { 0,0,0 };
 
 				for (int i = 0; i < 3; i++)
 				{
@@ -153,8 +153,8 @@ Model* AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path)
 			}
 			else if (command == "f")
 			{
-				int vertexIndex[3];
-				int normalIndex[3];
+				int vertexIndex[3] = { 0,0,0 };
+				int normalIndex[3] = { 0,0,0 };
 
 				for (int i = 0; i < 3; i++)
 				{

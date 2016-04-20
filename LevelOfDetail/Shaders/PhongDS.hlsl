@@ -39,36 +39,36 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 	DS_OUT output = (DS_OUT)0;
 
 	// The barycentric coordinates
-	float fU = domainLocation.x;
-	float fV = domainLocation.y;
-	float fW = domainLocation.z;
+	float u = domainLocation.x;
+	float v = domainLocation.y;
+	float w = domainLocation.z;
 	// Precompute squares 
-	float fUU = fU * fU;
-	float fVV = fV * fV;
-	float fWW = fW * fW;
+	float uu = u * u;
+	float vv = v * v;
+	float ww = w * w;
 
 	float3 position = 
-		patch[0].pos * fWW +
-		patch[1].pos * fUU +
-		patch[2].pos * fVV +
-		fW * fU * (PI(patch[0], patch[1]) + PI(patch[1], patch[0])) +
-		fU * fV * (PI(patch[1], patch[2]) + PI(patch[2], patch[1])) +
-		fV * fW * (PI(patch[2], patch[0]) + PI(patch[0], patch[2]));
+		patch[0].pos * ww +
+		patch[1].pos * uu +
+		patch[2].pos * vv +
+		w * u * (PI(patch[0], patch[1]) + PI(patch[1], patch[0])) +
+		u * v * (PI(patch[1], patch[2]) + PI(patch[2], patch[1])) +
+		v * w * (PI(patch[2], patch[0]) + PI(patch[0], patch[2]));
 
 	float t = 0.5;
-	position = position*t + (patch[0].pos * fW + patch[1].pos * fU + patch[2].pos * fV)*(1 - t);
+	position = position * t + (patch[0].pos * w + patch[1].pos * u + patch[2].pos * v)*(1 - t);
 
 	float3 normal = 
-		patch[0].normal * fW +
-		patch[1].normal * fU +
-		patch[2].normal * fV;
+		patch[0].normal * w +
+		patch[1].normal * u +
+		patch[2].normal * v;
 
 
 	float4 p = mul(float4(position, 1.0f), viewMatrix);
 	p = mul(p, projectionMatrix);
 
 	output.pos = p;
-	output.uv = patch[0].uv * fW + patch[1].uv * fU + patch[2].uv * fV;
+	output.uv = patch[0].uv * w + patch[1].uv * u + patch[2].uv * v;
 	output.normal = normalize(normal);
 
 	return output;

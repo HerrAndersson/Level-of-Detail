@@ -47,47 +47,47 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 	DS_OUT output = (DS_OUT)0;
 
 	// The barycentric coordinates
-	float fU = domainLocation.x;
-	float fV = domainLocation.y;
-	float fW = domainLocation.z;
+	float u = domainLocation.x;
+	float v = domainLocation.y;
+	float w = domainLocation.z;
 
 	// Precompute squares 
-	float fUU = fU * fU;
-	float fVV = fV * fV;
-	float fWW = fW * fW;
+	float uu = u * u;
+	float vv = v * v;
+	float ww = w * w;
 
 	// Precompute squares * 3 
-	float fUU3 = fUU * 3.0f;
-	float fVV3 = fVV * 3.0f;
-	float fWW3 = fWW * 3.0f;
+	float uu3 = uu * 3.0f;
+	float vv3 = vv * 3.0f;
+	float ww3 = ww * 3.0f;
 
 	// Compute position from cubic control points and barycentric coords
 	float3 position = 
-		patch[0].pos.xyz * fWW * fW +
-		patch[1].pos.xyz * fUU * fU +
-		patch[2].pos.xyz * fVV * fV +
-		hsConstData.B210 * fWW3 * fU +
-		hsConstData.B120 * fW * fUU3 +
-		hsConstData.B201 * fWW3 * fV +
-		hsConstData.B021 * fUU3 * fV +
-		hsConstData.B102 * fW * fVV3 +
-		hsConstData.B012 * fU * fVV3 +
-		hsConstData.B111 * 6.0f * fW * fU * fV;
+		patch[0].pos.xyz * ww * w +
+		patch[1].pos.xyz * uu * u +
+		patch[2].pos.xyz * vv * v +
+		hsConstData.B210 * ww3 * u +
+		hsConstData.B120 * w * uu3 +
+		hsConstData.B201 * ww3 * v +
+		hsConstData.B021 * uu3 * v +
+		hsConstData.B102 * w * vv3 +
+		hsConstData.B012 * u * vv3 +
+		hsConstData.B111 * 6.0f * w * u * v;
 
 	// Compute normal from quadratic control points and barycentric coords
 	float3 normal = 
-		patch[0].normal * fWW +
-		patch[1].normal * fUU +
-		patch[2].normal * fVV +
-		hsConstData.N110 * fW * fU +
-		hsConstData.N011 * fU * fV +
-		hsConstData.N101 * fW * fV;
+		patch[0].normal * ww +
+		patch[1].normal * uu +
+		patch[2].normal * vv +
+		hsConstData.N110 * w * u +
+		hsConstData.N011 * u * v +
+		hsConstData.N101 * w * v;
 
 	float4 p = mul(float4(position, 1.0f), viewMatrix);
 	p = mul(p, projectionMatrix);
 
 	output.pos = p;
-	output.uv = patch[0].uv * fW + patch[1].uv * fU + patch[2].uv * fV;
+	output.uv = patch[0].uv * w + patch[1].uv * u + patch[2].uv * v;
 	output.normal = normalize(normal);
 
 	return output;

@@ -11,7 +11,7 @@ The distance would then be calculated using the vector between camPos and objPos
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::CPNT),
+	activeTechnique(LoDTechnique::PHONG),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0)
@@ -48,6 +48,7 @@ void LevelOfDetail::OnDestroy()
 
 	delete defaultVS;
 	delete cpntVS;
+	delete phongVS;
 
 	SAFE_RELEASE(defaultPS);
 	SAFE_RELEASE(cpntHS);
@@ -55,6 +56,7 @@ void LevelOfDetail::OnDestroy()
 	SAFE_RELEASE(cpntDS);
 	SAFE_RELEASE(phongDS);
 	SAFE_RELEASE(cpntPS);
+	SAFE_RELEASE(phongPS);
 
 	SAFE_RELEASE(samplerWrap);
 
@@ -122,6 +124,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	//Vertex shaders
 	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/ModelVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
 	cpntVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/CpntVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
+	phongVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/PhongVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
 	//Hull shaders
 	cpntHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/CpntHS.hlsl", compileFlags);
 	phongHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/PhongHS.hlsl", compileFlags);
@@ -131,6 +134,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	//Pixel shaders
 	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/ModelPS.hlsl", compileFlags);
 	cpntPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/CpntPS.hlsl", compileFlags);
+	phongPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/PhongPS.hlsl", compileFlags);
 
 	//Samplers
 	samplerWrap = ShaderHandler::CreateSamplerState(deviceRef, SamplerStates::WRAP);
@@ -548,7 +552,7 @@ void LevelOfDetail::RenderUnpoppingLOD()
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 		//Render current index
-		//dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+		dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		SetCBPerObject(worldMatrix, colors[0], 1.0f);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
@@ -580,9 +584,20 @@ void LevelOfDetail::RenderCPNTLOD()
 void LevelOfDetail::RenderPhongLOD()
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	SetCBPerFrame(viewMatrix, projectionMatrix);
+	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
 
+	LoDObject* object = lodObjects[0];
 
+	//Set resources
+	UINT32 vertexSize = sizeof(Vertex);
+	UINT32 offset = 0;
+	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+	if (object->texture)
+		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+
+	//Render
+	SetCPNTDataPerObject(worldMatrix, colors[0], 2.0f);
+	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();
 }
@@ -694,14 +709,14 @@ void LevelOfDetail::SetPhongLOD()
 {
 	activeTechnique = LoDTechnique::PHONG;
 
-	deviceContextRef->IASetInputLayout(defaultVS->inputLayout);
-	deviceContextRef->VSSetShader(defaultVS->vertexShader, nullptr, 0);
+	deviceContextRef->IASetInputLayout(phongVS->inputLayout);
+	deviceContextRef->VSSetShader(phongVS->vertexShader, nullptr, 0);
 	deviceContextRef->HSSetShader(phongHS, nullptr, 0);
 	deviceContextRef->DSSetShader(phongDS, nullptr, 0);
-	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+	deviceContextRef->PSSetShader(phongPS, nullptr, 0);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
-	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 }
 
 // Random percent value, from -1 to 1.

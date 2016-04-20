@@ -1,56 +1,57 @@
-// Input control point
-struct VS_CONTROL_POINT_OUTPUT
-{
-	float3 vPosition : WORLDPOS;
-	// TODO: change/add other stuff
-};
-
-// Output control point
-struct HS_CONTROL_POINT_OUTPUT
-{
-	float3 vPosition : WORLDPOS; 
-};
-
-// Output patch constant data.
-struct HS_CONSTANT_DATA_OUTPUT
-{
-	float EdgeTessFactor[3]			: SV_TessFactor; // e.g. would be [4] for a quad domain
-	float InsideTessFactor			: SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
-	// TODO: change/add other stuff
-};
-
 #define NUM_CONTROL_POINTS 3
 
-// Patch Constant Function
-HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
-	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
-	uint PatchID : SV_PrimitiveID)
+cbuffer cbPerPatch : register(b0)
 {
-	HS_CONSTANT_DATA_OUTPUT Output;
+	float distanceToCamera;
+	float tessellationFactor;
+};
 
-	// Insert code to compute Output here
-	Output.EdgeTessFactor[0] = 
-		Output.EdgeTessFactor[1] = 
-		Output.EdgeTessFactor[2] = 
-		Output.InsideTessFactor = 15; // e.g. could calculate dynamic tessellation factors instead
+struct VS_OUT
+{
+	float4 pos			: POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
+};
 
-	return Output;
+struct HS_OUT
+{
+	float4 pos			: POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
+};
+
+struct HS_CONSTANT_DATA_OUTPUT
+{
+	float EdgeTessFactor[3]			: SV_TessFactor;
+	float InsideTessFactor : SV_InsideTessFactor;
+};
+
+// Patch Constant Function
+HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POINTS> ip, uint PatchID : SV_PrimitiveID)
+{
+	HS_CONSTANT_DATA_OUTPUT output;
+
+	output.EdgeTessFactor[0] =
+		output.EdgeTessFactor[1] =
+		output.EdgeTessFactor[2] =
+		output.InsideTessFactor = tessellationFactor / (distanceToCamera / 10.0f);
+
+	return output;
 }
 
 [domain("tri")]
 [partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
-[outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
-HS_CONTROL_POINT_OUTPUT main( 
-	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip, 
-	uint i : SV_OutputControlPointID,
-	uint PatchID : SV_PrimitiveID )
+[outputcontrolpoints(3)]
+[maxtessfactor(15.0f)]
+HS_OUT main(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint cpid : SV_OutputControlPointID, uint patchID : SV_PrimitiveID)
 {
-	HS_CONTROL_POINT_OUTPUT Output;
+	HS_OUT output = (HS_OUT)0;
 
-	// Insert code to compute Output here
-	Output.vPosition = ip[i].vPosition;
+	output.pos = inputPatch[cpid].pos;
+	output.uv = inputPatch[cpid].uv;
+	output.normal = inputPatch[cpid].normal;
 
-	return Output;
+	return output;
 }

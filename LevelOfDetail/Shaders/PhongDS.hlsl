@@ -1,35 +1,75 @@
-struct DS_OUTPUT
-{
-	float4 vPosition  : SV_POSITION;
-	// TODO: change/add other stuff
-};
-
-// Output control point
-struct HS_CONTROL_POINT_OUTPUT
-{
-	float3 vPosition : WORLDPOS; 
-};
-
-// Output patch constant data.
-struct HS_CONSTANT_DATA_OUTPUT
-{
-	float EdgeTessFactor[3]			: SV_TessFactor; // e.g. would be [4] for a quad domain
-	float InsideTessFactor			: SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
-	// TODO: change/add other stuff
-};
 
 #define NUM_CONTROL_POINTS 3
 
-[domain("tri")]
-DS_OUTPUT main(
-	HS_CONSTANT_DATA_OUTPUT input,
-	float3 domain : SV_DomainLocation,
-	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)
+cbuffer cbPerObject : register(b0)
 {
-	DS_OUTPUT Output;
+	matrix viewMatrix;
+	matrix projectionMatrix;
+};
 
-	Output.vPosition = float4(
-		patch[0].vPosition*domain.x+patch[1].vPosition*domain.y+patch[2].vPosition*domain.z,1);
+struct HS_OUT
+{
+	float4 pos			: POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
+};
 
-	return Output;
+struct DS_OUT
+{
+	float4 pos			: SV_POSITION;
+	float2 uv			: TEXCOORD;
+	float3 normal		: NORMAL;
+};
+
+struct HS_CONSTANT_DATA_OUTPUT
+{
+	float EdgeTessFactor[3]		: SV_TessFactor;
+	float InsideTessFactor : SV_InsideTessFactor;
+};
+
+float3 PI(HS_OUT q, HS_OUT I)
+{
+	float3 q_minus_p = q.pos - I.pos;
+	return q.pos - dot(q_minus_p, I.normal) * I.normal;
+}
+
+[domain("tri")]
+DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_DomainLocation, const OutputPatch<HS_OUT, NUM_CONTROL_POINTS> patch)
+{
+	DS_OUT output = (DS_OUT)0;
+
+	// The barycentric coordinates
+	float fU = domainLocation.x;
+	float fV = domainLocation.y;
+	float fW = domainLocation.z;
+	// Precompute squares 
+	float fUU = fU * fU;
+	float fVV = fV * fV;
+	float fWW = fW * fW;
+
+	float3 position = 
+		patch[0].pos * fWW +
+		patch[1].pos * fUU +
+		patch[2].pos * fVV +
+		fW * fU * (PI(patch[0], patch[1]) + PI(patch[1], patch[0])) +
+		fU * fV * (PI(patch[1], patch[2]) + PI(patch[2], patch[1])) +
+		fV * fW * (PI(patch[2], patch[0]) + PI(patch[0], patch[2]));
+
+	float t = 0.5;
+	position = position*t + (patch[0].pos * fW + patch[1].pos * fU + patch[2].pos * fV)*(1 - t);
+
+	float3 normal = 
+		patch[0].normal * fW +
+		patch[1].normal * fU +
+		patch[2].normal * fV;
+
+
+	float4 p = mul(float4(position, 1.0f), viewMatrix);
+	p = mul(p, projectionMatrix);
+
+	output.pos = p;
+	output.uv = patch[0].uv * fW + patch[1].uv * fU + patch[2].uv * fV;
+	output.normal = normalize(normal);
+
+	return output;
 }

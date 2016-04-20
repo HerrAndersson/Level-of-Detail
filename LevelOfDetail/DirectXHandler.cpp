@@ -1,9 +1,7 @@
 #include "DirectXHandler.h"
 #include "Utility.h"
-
-//Used for saving an ID3D11Texture2D to an image
-#include <wincodec.h>
-#include "ScreenGrab.h"
+#include <wincodec.h> //Holds codecs like GUID_ContainerFormatPng
+#include "ScreenGrab.h" //Used for saving an ID3D11Texture2D to an image
 
 namespace Renderer
 {
@@ -122,58 +120,31 @@ namespace Renderer
 			throw std::runtime_error("DirectXHandler: Error creating rasterizer state WIREFRAME. " + GetErrorMessageFromHRESULT(result));
 
 		/////////////////////////////////////////////////////// Depth stencil states ///////////////////////////////////////////////////////
-		//D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-		//ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
-		//depthStencilDesc.DepthEnable = true;
-		//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		//depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+		ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+		depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		depthStencilDesc.StencilEnable = false;
+		depthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+		depthStencilDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+		depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.BackFace = depthStencilDesc.FrontFace;
 
-		////Create depth state with test enabled and write enabled
-		//result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
-		//if (FAILED(result))
-		//	throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
-
-		////Create depth state with test enabled and write disabled
-		//D3D11_DEPTH_STENCIL_DESC depthStencilDesc2;
-		//ZeroMemory(&depthStencilDesc2, sizeof(D3D11_DEPTH_STENCIL_DESC));
-		//depthStencilDesc2.DepthEnable = true;
-		//depthStencilDesc2.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		//depthStencilDesc2.DepthFunc = D3D11_COMPARISON_LESS;
-
-		//result = device->CreateDepthStencilState(&depthStencilDesc2, &dss_TestE_WriteD);
-		//if (FAILED(result))
-		//	throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
-
-
-
-
-
-		D3D11_DEPTH_STENCIL_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-
-		desc.DepthEnable = true;
-		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		desc.DepthFunc = D3D11_COMPARISON_LESS;
-		desc.StencilEnable = false;
-		desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-		desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-		desc.BackFace = desc.FrontFace;
-
-		//Create depth stencil state with z-test and z-write enabled
-		result = device->CreateDepthStencilState(&desc, &dss_TestE_WriteE);
+		//Create depth state with test enabled and write enabled
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
 
-		//Create depth stencil state with z-test enabled and z-write disabled
-		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		result = device->CreateDepthStencilState(&desc, &dss_TestE_WriteD);
+		//Create depth state with test enabled and write disabled
+		//depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
 		if (FAILED(result))
 			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
-
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////
 		D3D11_BLEND_DESC omDesc;
@@ -241,14 +212,16 @@ namespace Renderer
 	{
 		ID3D11Texture2D* backBuffer = nullptr;
 		HRESULT hr = swapChain->GetBuffer(0, __uuidof(*backBuffer), (LPVOID*)&backBuffer);
-		if (SUCCEEDED(hr))
-		{
-			hr = SaveWICTextureToFile(deviceContext, backBuffer,
-				GUID_ContainerFormatPng, filename.c_str());
-			backBuffer->Release();
-		}
+
+		if (FAILED(hr))
+			throw std::runtime_error("DirectXHandler::SaveBackBufferToFile: Failed to retrieve backbuffer. " + GetErrorMessageFromHRESULT(hr));
+
+		hr = SaveWICTextureToFile(deviceContext, backBuffer, GUID_ContainerFormatPng, filename.c_str());
+
 		if (FAILED(hr))
 			throw std::runtime_error("DirectXHandler::SaveBackBufferToFile: Failed to save image. " + GetErrorMessageFromHRESULT(hr));
+
+		SAFE_RELEASE(backBuffer);
 	}
 
 	void DirectXHandler::SetRasterState(RasterState state)
@@ -303,15 +276,18 @@ namespace Renderer
 
 	void DirectXHandler::SetDepthState(DepthState state)
 	{
+
+		// Kan vara problem här? Med StencilRef, eller ClearDepthStencilView
+
 		switch (state)
 		{
 		case Renderer::DirectXHandler::DepthState::TEST_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 0);
+			deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 1);
 		}
 		case Renderer::DirectXHandler::DepthState::TEST_NO_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(dss_TestE_WriteD, 0);
+			deviceContext->OMSetDepthStencilState(dss_TestE_WriteD, 1);
 			break;
 		}
 		default:
@@ -328,6 +304,10 @@ namespace Renderer
 
 	void DirectXHandler::EndScene()
 	{
+		//V-sync
+		//swapChain->Present(1, 0);
+
+
 		swapChain->Present(0, 0);
 	}
 }

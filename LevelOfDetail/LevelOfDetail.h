@@ -46,6 +46,7 @@ private:
 	//Vertex shaders
 	VertexShaderData* defaultVS;
 	VertexShaderData* cpntVS;
+	VertexShaderData* phongVS;
 	//Hull shaders
 	ID3D11HullShader* cpntHS;
 	ID3D11HullShader* phongHS;
@@ -55,6 +56,7 @@ private:
 	//Pixel shaders
 	ID3D11PixelShader* defaultPS;
 	ID3D11PixelShader* cpntPS;
+	ID3D11PixelShader* phongPS;
 
 	ID3D11SamplerState* samplerWrap;
 

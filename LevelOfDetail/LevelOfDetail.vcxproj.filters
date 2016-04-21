@@ -162,5 +162,14 @@
     <Object Include="Assets\Models\box2.obj">
       <Filter>AssetHandling\Assets</Filter>
     </Object>
+    <Object Include="Assets\Models\camel.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\cylinder.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
+    <Object Include="Assets\Models\icosahedron.obj">
+      <Filter>AssetHandling\Assets</Filter>
+    </Object>
   </ItemGroup>
 </Project>

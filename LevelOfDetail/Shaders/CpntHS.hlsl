@@ -120,6 +120,7 @@ HS_OUT main(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint cpid : SV_Ou
 {
 	HS_OUT output = (HS_OUT)0;
 
+	//Passthrough
 	output.pos = inputPatch[cpid].pos;
 	output.uv = inputPatch[cpid].uv;
 	output.normal = inputPatch[cpid].normal;

@@ -76,6 +76,13 @@ void LevelOfDetail::LoadAssets()
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
+	LoDObject* ico = new LoDObject();
+	ico->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	ico->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	ico->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	ico->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	lodObjects.push_back(ico);
+
 	LoDObject* bunny = new LoDObject();
 	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
@@ -267,7 +274,7 @@ void LevelOfDetail::SetTessellationCBPerFrame(matrix view, matrix projection)
 
 	result = deviceContextRef->Map(cbPerFrameDS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::SetCPNTDataPerFrame: Failed to Map cbPerFrame");
+		throw std::runtime_error("LevelOfDetail::SetTessellationCBPerFrame: Failed to Map cbPerFrameDS");
 
 	dataPtr = static_cast<CBPerFrame*>(mappedResource.pData);
 	dataPtr->view = XMMatrixTranspose(view.ToSIMD());
@@ -287,7 +294,7 @@ void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color)
 
 	result = deviceContextRef->Map(cbPerObjectHS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::SetCPNTDataPerFrame: Failed to Map cbPerFrame");
+		throw std::runtime_error("LevelOfDetail::SetTessellationCBPerObject: Failed to Map cbPerObjectHS");
 
 	dataPtr = static_cast<CBPerObjectHS*>(mappedResource.pData);
 	dataPtr->cameraPosition = camera.GetPosition().Length();
@@ -332,7 +339,6 @@ void LevelOfDetail::OnUpdate()
 //Render the scene
 void LevelOfDetail::OnRender()
 {
-
 	LoDObject* object = lodObjects[objectIndex];
 
 	switch (activeTechnique)

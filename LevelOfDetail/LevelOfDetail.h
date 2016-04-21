@@ -59,8 +59,10 @@ private:
 	//Pixel shaders
 	ID3D11PixelShader* defaultPS;
 
+	//Sampler states
 	ID3D11SamplerState* samplerWrap;
 
+	//Buffers
 	ID3D11Buffer* cbPerObjectVS;
 	ID3D11Buffer* cbPerFrameVS;
 	ID3D11Buffer* cbPerObjectPS;

@@ -112,12 +112,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\ModelPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\ModelVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\CpntDS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -130,16 +124,13 @@
     <FxCompile Include="Shaders\PhongHS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\CpntVS.hlsl">
+    <FxCompile Include="Shaders\DefaultPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\CpntPS.hlsl">
+    <FxCompile Include="Shaders\DefaultVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\PhongPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\PhongVS.hlsl">
+    <FxCompile Include="Shaders\TessellationVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -19,9 +19,11 @@ struct CBPerObjectPS
 	float blendFactor;
 };
 
-struct CBPerPatchHS
+struct CBPerObjectHS
 {
-	float distanceToCamera;
+	float3 cameraPosition;
 	float tessellationFactor;
+	float minDistance;
+	float range;
 	XMFLOAT2 pad;
 };

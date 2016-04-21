@@ -3,9 +3,8 @@
 
 /*
 
-Every calculation of distance between the camera and the object assumes that the object is at (0,0,0). If the object should move it needs to hold its own position. 
-The distance would then be calculated using the vector between camPos and objPos
-
+Every calculation of distance between the camera and the object (For example when determining the LoD-level) assumes that the object is at (0,0,0). 
+If the object should move it needs to hold its own position. The distance would then be calculated using the vector between camPos and objPos
 
 */
 
@@ -15,7 +14,10 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0),
-	objectIndex(0)
+	objectIndex(0),
+	tessellationMinDistance(1.0f),
+	tessellationRange(25.0f),
+	tessellationFactor(5.0f)
 {
 	for (int i = 0; i < 100; i++)
 	{
@@ -48,16 +50,13 @@ void LevelOfDetail::OnDestroy()
 	delete dx;
 
 	delete defaultVS;
-	delete cpntVS;
-	delete phongVS;
+	delete tessellationVS;
 
 	SAFE_RELEASE(defaultPS);
 	SAFE_RELEASE(cpntHS);
 	SAFE_RELEASE(phongHS);
 	SAFE_RELEASE(cpntDS);
 	SAFE_RELEASE(phongDS);
-	SAFE_RELEASE(cpntPS);
-	SAFE_RELEASE(phongPS);
 
 	SAFE_RELEASE(samplerWrap);
 
@@ -65,7 +64,7 @@ void LevelOfDetail::OnDestroy()
 	SAFE_RELEASE(cbPerFrameVS);
 	SAFE_RELEASE(cbPerObjectPS);
 	SAFE_RELEASE(cbPerFrameDS);
-	SAFE_RELEASE(cbPerPatchHS);
+	SAFE_RELEASE(cbPerObjectHS);
 
 	for (auto o : lodObjects)
 		delete o;
@@ -134,9 +133,8 @@ void LevelOfDetail::LoadPipelineObjects()
 	int numElements = sizeof(posTexNormInputDesc) / sizeof(posTexNormInputDesc[0]);
 
 	//Vertex shaders
-	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/ModelVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
-	cpntVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/CpntVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
-	phongVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/PhongVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
+	defaultVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/DefaultVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
+	tessellationVS = ShaderHandler::CreateVertexShader(deviceRef, L"Shaders/TessellationVS.hlsl", posTexNormInputDesc, numElements, compileFlags);
 	//Hull shaders
 	cpntHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/CpntHS.hlsl", compileFlags);
 	phongHS = ShaderHandler::CreateHullShader(deviceRef, L"Shaders/PhongHS.hlsl", compileFlags);
@@ -144,9 +142,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	cpntDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/CpntDS.hlsl", compileFlags);
 	phongDS = ShaderHandler::CreateDomainShader(deviceRef, L"Shaders/PhongDS.hlsl", compileFlags);
 	//Pixel shaders
-	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/ModelPS.hlsl", compileFlags);
-	cpntPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/CpntPS.hlsl", compileFlags);
-	phongPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/PhongPS.hlsl", compileFlags);
+	defaultPS = ShaderHandler::CreatePixelShader(deviceRef, L"Shaders/DefaultPS.hlsl", compileFlags);
 
 	//Samplers
 	samplerWrap = ShaderHandler::CreateSamplerState(deviceRef, SamplerStates::WRAP);
@@ -181,10 +177,10 @@ void LevelOfDetail::LoadPipelineObjects()
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerFrameDS. " + GetErrorMessageFromHRESULT(result));
 
-	matrixBufferDesc.ByteWidth = sizeof(CBPerPatchHS);
-	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerPatchHS);
+	matrixBufferDesc.ByteWidth = sizeof(CBPerObjectHS);
+	result = deviceRef->CreateBuffer(&matrixBufferDesc, NULL, &cbPerObjectHS);
 	if (FAILED(result))
-		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerPatchHS. " + GetErrorMessageFromHRESULT(result));
+		throw std::runtime_error("LevelOfDetail::LoadPipelineObjects: Failed to create cbPerObjectHS. " + GetErrorMessageFromHRESULT(result));
 
 	//Set states and shaders
 	switch (activeTechnique)
@@ -262,7 +258,7 @@ void LevelOfDetail::SetCBPerFrame(matrix view, matrix projection)
 	deviceContextRef->VSSetConstantBuffers(0, 1, &cbPerFrameVS);
 }
 
-void LevelOfDetail::SetCPNTDataPerFrame(matrix view, matrix projection)
+void LevelOfDetail::SetTessellationCBPerFrame(matrix view, matrix projection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -280,25 +276,27 @@ void LevelOfDetail::SetCPNTDataPerFrame(matrix view, matrix projection)
 
 	deviceContextRef->DSSetConstantBuffers(0, 1, &cbPerFrameDS);
 }
-void LevelOfDetail::SetCPNTDataPerObject(matrix world, float3 color, float tessellationFactor)
+void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color)
 {
 	SetCBPerObject(world, color, 1.0f);
 
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	CBPerPatchHS* dataPtr;
+	CBPerObjectHS* dataPtr;
 
-	result = deviceContextRef->Map(cbPerPatchHS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	result = deviceContextRef->Map(cbPerObjectHS, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 		throw std::runtime_error("LevelOfDetail::SetCPNTDataPerFrame: Failed to Map cbPerFrame");
 
-	dataPtr = static_cast<CBPerPatchHS*>(mappedResource.pData);
-	dataPtr->distanceToCamera = camera.GetPosition().Length();
+	dataPtr = static_cast<CBPerObjectHS*>(mappedResource.pData);
+	dataPtr->cameraPosition = camera.GetPosition().Length();
 	dataPtr->tessellationFactor = tessellationFactor;
-	deviceContextRef->Unmap(cbPerPatchHS, 0);
+	dataPtr->minDistance = tessellationMinDistance;
+	dataPtr->range = tessellationRange;
+	deviceContextRef->Unmap(cbPerObjectHS, 0);
 
-	deviceContextRef->HSSetConstantBuffers(0, 1, &cbPerPatchHS);
+	deviceContextRef->HSSetConstantBuffers(0, 1, &cbPerObjectHS);
 }
 
 //Update frame-based values
@@ -572,7 +570,7 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
+	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -582,7 +580,7 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 	//Render
-	SetCPNTDataPerObject(worldMatrix, colors[0], 2.0f);
+	SetTessellationCBPerObject(worldMatrix, colors[0]);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();
@@ -591,7 +589,7 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
-	SetCPNTDataPerFrame(viewMatrix, projectionMatrix);
+	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -601,7 +599,7 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 	//Render
-	SetCPNTDataPerObject(worldMatrix, colors[0], 2.0f);
+	SetTessellationCBPerObject(worldMatrix, colors[0]);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 
 	dx->EndScene();
@@ -717,11 +715,11 @@ void LevelOfDetail::SetCPNTLOD()
 {
 	activeTechnique = LoDTechnique::CPNT;
 
-	deviceContextRef->IASetInputLayout(cpntVS->inputLayout);
-	deviceContextRef->VSSetShader(cpntVS->vertexShader, nullptr, 0);
+	deviceContextRef->IASetInputLayout(tessellationVS->inputLayout);
+	deviceContextRef->VSSetShader(tessellationVS->vertexShader, nullptr, 0);
 	deviceContextRef->HSSetShader(cpntHS, nullptr, 0);
 	deviceContextRef->DSSetShader(cpntDS, nullptr, 0);
-	deviceContextRef->PSSetShader(cpntPS, nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -731,11 +729,11 @@ void LevelOfDetail::SetPhongLOD()
 {
 	activeTechnique = LoDTechnique::PHONG;
 
-	deviceContextRef->IASetInputLayout(phongVS->inputLayout);
-	deviceContextRef->VSSetShader(phongVS->vertexShader, nullptr, 0);
+	deviceContextRef->IASetInputLayout(tessellationVS->inputLayout);
+	deviceContextRef->VSSetShader(tessellationVS->vertexShader, nullptr, 0);
 	deviceContextRef->HSSetShader(phongHS, nullptr, 0);
 	deviceContextRef->DSSetShader(phongDS, nullptr, 0);
-	deviceContextRef->PSSetShader(phongPS, nullptr, 0);
+	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);

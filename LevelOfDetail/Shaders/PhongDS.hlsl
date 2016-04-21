@@ -1,3 +1,6 @@
+/*----------------------------------------------------------------------------------------------------------------------
+| Domain shader for the technique Phong Tessellation															       |
+----------------------------------------------------------------------------------------------------------------------*/
 
 #define NUM_CONTROL_POINTS 3
 
@@ -66,9 +69,11 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 		patch[1].normal * u + 
 		patch[2].normal * v;
 
+	//Transform the position
 	float4 p = mul(float4(position, 1.0f), viewMatrix);
 	p = mul(p, projectionMatrix);
 
+	//Output
 	output.pos = p;
 	output.uv = patch[0].uv * w + patch[1].uv * u + patch[2].uv * v;
 	output.normal = normalize(normal);

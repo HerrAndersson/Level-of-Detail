@@ -28,6 +28,9 @@ private:
 	bool wireframeModeActive;
 	float3 rotation;
 	int objectIndex;
+	float tessellationMinDistance;
+	float tessellationRange;
+	float tessellationFactor;
 
 	matrix projectionMatrix;
 	matrix viewMatrix;
@@ -46,8 +49,7 @@ private:
 
 	//Vertex shaders
 	VertexShaderData* defaultVS;
-	VertexShaderData* cpntVS;
-	VertexShaderData* phongVS;
+	VertexShaderData* tessellationVS;
 	//Hull shaders
 	ID3D11HullShader* cpntHS;
 	ID3D11HullShader* phongHS;
@@ -56,8 +58,6 @@ private:
 	ID3D11DomainShader* phongDS;
 	//Pixel shaders
 	ID3D11PixelShader* defaultPS;
-	ID3D11PixelShader* cpntPS;
-	ID3D11PixelShader* phongPS;
 
 	ID3D11SamplerState* samplerWrap;
 
@@ -65,7 +65,7 @@ private:
 	ID3D11Buffer* cbPerFrameVS;
 	ID3D11Buffer* cbPerObjectPS;
 	ID3D11Buffer* cbPerFrameDS;
-	ID3D11Buffer* cbPerPatchHS;
+	ID3D11Buffer* cbPerObjectHS;
 
 	void LoadAssets();
 	void LoadPipelineObjects();
@@ -73,8 +73,8 @@ private:
 	void SetCBPerObject(matrix world, float3 color, float blendFactor);
 	void SetCBPerFrame(matrix view, matrix projection);
 
-	void SetCPNTDataPerFrame(matrix view, matrix projection);
-	void SetCPNTDataPerObject(matrix world, float3 color, float tessellationFactor);
+	void SetTessellationCBPerFrame(matrix view, matrix projection);
+	void SetTessellationCBPerObject(matrix world, float3 color);
 	
 	void RenderNoLOD(LoDObject* object);
 	void RenderStaticLOD(LoDObject* object);

@@ -1,9 +1,14 @@
+/*----------------------------------------------------------------------------------------------------------------------
+| Hull shader for the technique Curved PN Triangles																	   |
+----------------------------------------------------------------------------------------------------------------------*/
 #define NUM_CONTROL_POINTS 3
 
 cbuffer cbPerPatch : register(b0)
 {
-	float distanceToCamera;
+	float3 cameraPosition;
 	float tessellationFactor;
+	float minDistance;
+	float range;
 };
 
 struct VS_OUT
@@ -40,24 +45,45 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float3 N101    : NORMAL5;
 };
 
+//Returns a distance adaptive tessellation scale factor (0.0f -> 1.0f) 
+float GetDistanceAdaptiveScaleFactor(float3 cameraPos, float3 edgePos0, float3 edgePos1, float minDistance, float range)
+{
+	float3 midPoint = (edgePos0 + edgePos1) * 0.5f;
+	float dist = distance(midPoint, cameraPos) - minDistance;
+	float scale = 1.0f - saturate(dist / range);
+
+	return scale;
+}
+
 // Patch Constant Function
-HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POINTS> ip, uint PatchID : SV_PrimitiveID)
+HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint PatchID : SV_PrimitiveID)
 {
 	HS_CONSTANT_DATA_OUTPUT output;
 
-	output.EdgeTessFactor[0] =
-	output.EdgeTessFactor[1] = 
-	output.EdgeTessFactor[2] = 
-	output.InsideTessFactor = tessellationFactor / (distanceToCamera / 10.0f);
+	output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = tessellationFactor;
+
+	//Perform distance adaptive tessellation per edge
+	//Edge 0
+	float adaptiveScaleFactor = GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[2].pos.xyz, inputPatch[0].pos.xyz, minDistance, range);
+	output.EdgeTessFactor[0] = lerp(1.0f, output.EdgeTessFactor[0], adaptiveScaleFactor);
+	//Edge 1
+	adaptiveScaleFactor = GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[0].pos.xyz, inputPatch[1].pos.xyz, minDistance, range);
+	output.EdgeTessFactor[1] = lerp(1.0f, output.EdgeTessFactor[1], adaptiveScaleFactor);
+	//Edge 2
+	adaptiveScaleFactor = GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[1].pos.xyz, inputPatch[2].pos.xyz, minDistance, range);
+	output.EdgeTessFactor[2] = lerp(1.0f, output.EdgeTessFactor[2], adaptiveScaleFactor);
+
+	//Inside tess factor is the average of the three edge factors
+	output.InsideTessFactor = (output.EdgeTessFactor[0] + output.EdgeTessFactor[1] + output.EdgeTessFactor[2]) / 3.0f;
 
 	//Assign Positions and normals
-	float3 B003 = ip[0].pos.xyz;
-	float3 B030 = ip[1].pos.xyz;
-	float3 B300 = ip[2].pos.xyz;
-
-	float3 N002 = ip[0].normal;
-	float3 N020 = ip[1].normal;
-	float3 N200 = ip[2].normal;
+	float3 B003 = inputPatch[0].pos.xyz;
+	float3 B030 = inputPatch[1].pos.xyz;
+	float3 B300 = inputPatch[2].pos.xyz;
+	
+	float3 N002 = inputPatch[0].normal;
+	float3 N020 = inputPatch[1].normal;
+	float3 N200 = inputPatch[2].normal;
 
 	//Compute the cubic geometry control points
 	//Edge control points

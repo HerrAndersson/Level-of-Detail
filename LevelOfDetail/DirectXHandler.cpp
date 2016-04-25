@@ -177,7 +177,6 @@ namespace Renderer
 		deviceContext->OMSetRenderTargets(1, &rtvBackBuffer, dsvBackBuffer);
 	}
 
-
 	DirectXHandler::~DirectXHandler()
 	{
 		swapChain->SetFullscreenState(false, NULL);
@@ -280,6 +279,7 @@ namespace Renderer
 		case Renderer::DirectXHandler::DepthState::TEST_WRITE:
 		{
 			deviceContext->OMSetDepthStencilState(dssTestWrite, 1);
+			break;
 		}
 		case Renderer::DirectXHandler::DepthState::TEST_NO_WRITE:
 		{
@@ -303,17 +303,6 @@ namespace Renderer
 		//V-sync
 		//swapChain->Present(1, 0);
 
-
 		swapChain->Present(0, 0);
-	}
-
-	ID3D11DepthStencilState* DirectXHandler::GetDSSTestWrite()
-	{
-		return dssTestWrite;
-	}
-
-	ID3D11DepthStencilState* DirectXHandler::GetDSSTestNoWrite()
-	{
-		return dssTestNoWrite;
 	}
 }

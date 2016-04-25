@@ -10,7 +10,7 @@ If the object should move it needs to hold its own position. The distance would 
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::CPNT),
+	activeTechnique(LoDTechnique::UNPOPPING),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0),
@@ -449,7 +449,7 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		if (object->unpopBlendTime > object->unpopBlendLimit)
 		{
 			object->unpopBlendTimerActive = false;
-			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		}
 		else
 		{
@@ -501,9 +501,9 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		//----------------------------- Old LoD -----------------------------
 		//Set resources for OLD
 		if (write1)
-			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		else
-			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestNoWrite(), 1);
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndexPrevious]->vertexBuffer, &vertexSize, &offset);
 		if (object->texture)
@@ -516,9 +516,9 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		//----------------------------- New LoD -----------------------------
 		//Set resources for NEW
 		if (write2)
-			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		else
-			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestNoWrite(), 1);
+			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
 		if (object->texture)

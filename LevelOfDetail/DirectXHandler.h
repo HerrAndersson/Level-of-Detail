@@ -45,9 +45,6 @@ namespace Renderer
 		void SetBlendState(BlendState state);
 		void SetDepthState(DepthState state);
 
-		ID3D11DepthStencilState* GetDSSTestWrite();
-		ID3D11DepthStencilState* GetDSSTestNoWrite();
-
 		void BeginScene(float red, float green, float blue, float alpha);
 		void EndScene();
 	};

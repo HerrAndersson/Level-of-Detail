@@ -299,7 +299,7 @@ void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color)
 		throw std::runtime_error("LevelOfDetail::SetTessellationCBPerObject: Failed to Map cbPerObjectHS");
 
 	dataPtr = static_cast<CBPerObjectHS*>(mappedResource.pData);
-	dataPtr->cameraPosition = camera.GetPosition().Length();
+	dataPtr->cameraPosition = camera.GetPosition();
 	dataPtr->tessellationFactor = tessellationFactor;
 	dataPtr->minDistance = tessellationMinDistance;
 	dataPtr->range = tessellationRange;
@@ -709,6 +709,8 @@ void LevelOfDetail::SetNoLOD()
 	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
+	dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -722,6 +724,8 @@ void LevelOfDetail::SetStaticLOD()
 	deviceContextRef->HSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
+	dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -739,6 +743,8 @@ void LevelOfDetail::SetUnpoppingLOD()
 	deviceContextRef->DSSetShader(nullptr, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
+	dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
@@ -753,6 +759,8 @@ void LevelOfDetail::SetCPNTLOD()
 	deviceContextRef->DSSetShader(cpntDS, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
 
+	dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 }
@@ -766,6 +774,8 @@ void LevelOfDetail::SetPhongLOD()
 	deviceContextRef->HSSetShader(phongHS, nullptr, 0);
 	deviceContextRef->DSSetShader(phongDS, nullptr, 0);
 	deviceContextRef->PSSetShader(defaultPS, nullptr, 0);
+
+	dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 
 	deviceContextRef->PSSetSamplers(0, 1, &samplerWrap);
 	deviceContextRef->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);

@@ -326,7 +326,7 @@ void LevelOfDetail::OnRender()
 {
 	LoDObject* object = lodObjects[objectIndex];
 
-	//Decide lod-level
+	//Decide lod-level. For unpopping it is decided in RenderUnpoppingLOD-function
 	if (activeTechnique != UNPOPPING)
 	{
 		float length = camera.GetPosition().Length();

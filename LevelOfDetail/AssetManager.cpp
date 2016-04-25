@@ -163,6 +163,7 @@ Model* AssetManager::LoadModelNoUV(ID3D11Device* device, string file_path)
 					if (infile.peek() == '/')
 					{
 						infile.get();
+						infile.get();
 						infile >> normalIndex[i];
 					}
 				}

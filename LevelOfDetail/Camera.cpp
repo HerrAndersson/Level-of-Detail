@@ -50,7 +50,7 @@ void Camera::UpdateScriptedMode(float totalSeconds)
 	//position.y = sin(totalSeconds) * 10;
 	//position.z = cos(totalSeconds) * 10;
 
-	position.z = ((sin(totalSeconds* moveSpeed)  * 25) - 28);
+	position.z = ((sin(totalSeconds* moveSpeed)  * 22) - 25);
 }
 
 void Camera::UpdateArrowsMode(float elapsedSeconds)

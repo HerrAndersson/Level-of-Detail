@@ -28,7 +28,7 @@ namespace AssetUtility
 
 	struct LoDObject 
 	{
-		Model* models[5];
+		Model* models[5] = { nullptr, nullptr, nullptr, nullptr, nullptr };
 		ID3D11ShaderResourceView* texture = nullptr;
 
 		float unpopBlendTime = 0;
@@ -49,8 +49,11 @@ namespace AssetUtility
 
 			for (auto m : models)
 			{
-				SAFE_RELEASE(m->vertexBuffer);
-				delete m;
+				if (m)
+				{
+					SAFE_RELEASE(m->vertexBuffer);
+					delete m;
+				}
 			}
 		}
 	};

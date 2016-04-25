@@ -81,24 +81,26 @@ void LevelOfDetail::LoadAssets()
 	LoDObject* bunny = new LoDObject();
 	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
-
+	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny1.obj"));
 	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
-
+	bunny->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny3.obj"));
 	bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
 	lodObjects.push_back(bunny);
 
-	LoDObject* bunny = new LoDObject();
-	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon0.obj"));
-	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon1.obj"));
-	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon2.obj"));
-	lodObjects.push_back(bunny);
+	//LoDObject* dragon = new LoDObject();
+	//dragon->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//dragon->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon0.obj"));
+	//dragon->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon1.obj"));
+	//dragon->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon2.obj"));
+	//lodObjects.push_back(dragon);
 
 	LoDObject* cylinder = new LoDObject();
 	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
 	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
 	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
+	cylinder->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
+	cylinder->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
 	lodObjects.push_back(cylinder);
 }
 
@@ -324,6 +326,22 @@ void LevelOfDetail::OnRender()
 {
 	LoDObject* object = lodObjects[objectIndex];
 
+	//Decide lod-level
+	if (activeTechnique != UNPOPPING)
+	{
+		float length = camera.GetPosition().Length();
+		if (length < LOD_LEVELS[0])
+			object->lodIndex = 0;
+		else if (length < LOD_LEVELS[1])
+			object->lodIndex = 1;
+		else if (length < LOD_LEVELS[2])
+			object->lodIndex = 2;
+		else if (length < LOD_LEVELS[3])
+			object->lodIndex = 3;
+		else if (length < LOD_LEVELS[4])
+			object->lodIndex = 4;
+	}
+
 	switch (activeTechnique)
 	{
 	case LoDTechnique::NO_LOD:
@@ -394,17 +412,6 @@ void LevelOfDetail::RenderStaticLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
-
-	//Decide lod-level
-	float3 camPos = camera.GetPosition();
-	float length = camPos.Length();
-
-	if (length > LOD_LEVELS[1])
-		object->lodIndex = 2;
-	else if (length < LOD_LEVELS[0])
-		object->lodIndex = 0;
-	else
-		object->lodIndex = 1;
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -516,20 +523,30 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		float length = camPos.Length();
 
 		bool switchLoD = false;
-		if (length > LOD_LEVELS[1])
-		{
-			object->lodIndexPrevious = object->lodIndex;
-			object->lodIndex = 2;
-		}
-		else if (length < LOD_LEVELS[0])
+		if (length < LOD_LEVELS[0])
 		{
 			object->lodIndexPrevious = object->lodIndex;
 			object->lodIndex = 0;
 		}
-		else
+		else if (length < LOD_LEVELS[1])
 		{
 			object->lodIndexPrevious = object->lodIndex;
 			object->lodIndex = 1;
+		}
+		else if (length < LOD_LEVELS[2])
+		{
+			object->lodIndexPrevious = object->lodIndex;
+			object->lodIndex = 2;
+		}
+		else if (length < LOD_LEVELS[3])
+		{
+			object->lodIndexPrevious = object->lodIndex;
+			object->lodIndex = 3;
+		}
+		else if (length < LOD_LEVELS[4])
+		{
+			object->lodIndexPrevious = object->lodIndex;
+			object->lodIndex = 4;
 		}
 
 		if (object->lodIndex != object->lodIndexPrevious)
@@ -563,17 +580,6 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
 
-	//Decide lod-level
-	float3 camPos = camera.GetPosition();
-	float length = camPos.Length();
-
-	if (length > LOD_LEVELS[1])
-		object->lodIndex = 2;
-	else if (length < LOD_LEVELS[0])
-		object->lodIndex = 0;
-	else
-		object->lodIndex = 1;
-
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
@@ -592,17 +598,6 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
-
-	//Decide lod-level
-	float3 camPos = camera.GetPosition();
-	float length = camPos.Length();
-
-	if (length > LOD_LEVELS[1])
-		object->lodIndex = 2;
-	else if (length < LOD_LEVELS[0])
-		object->lodIndex = 0;
-	else
-		object->lodIndex = 1;
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);

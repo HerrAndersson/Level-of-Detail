@@ -104,9 +104,6 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{a1d9ef40-0d70-4ff6-8329-60fa1d03318d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="AssetHandling\Assets">
-      <UniqueIdentifier>{056ecbdd-c03c-431a-a7fd-6b9ba548bb44}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core\Debug">
       <UniqueIdentifier>{62934814-fc9d-4eff-8044-4d7441f9b3c4}</UniqueIdentifier>
     </Filter>
@@ -133,43 +130,5 @@
     <FxCompile Include="Shaders\TessellationVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Assets\Models\armadillo0.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\bunny0.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\dragon0.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\cube.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\bunny1.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\bunny2.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\box0.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\box1.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\box2.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\camel.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\cylinder.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
-    <Object Include="Assets\Models\icosahedron.obj">
-      <Filter>AssetHandling\Assets</Filter>
-    </Object>
   </ItemGroup>
 </Project>

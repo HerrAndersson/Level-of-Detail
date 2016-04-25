@@ -28,7 +28,7 @@ namespace AssetUtility
 
 	struct LoDObject 
 	{
-		Model* models[3];
+		Model* models[5];
 		ID3D11ShaderResourceView* texture = nullptr;
 
 		float unpopBlendTime = 0;

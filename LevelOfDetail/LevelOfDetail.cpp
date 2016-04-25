@@ -80,45 +80,26 @@ void LevelOfDetail::LoadAssets()
 
 	LoDObject* bunny = new LoDObject();
 	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
-	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
-	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
+	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
+
+	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
+
+	bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
+	lodObjects.push_back(bunny);
+
+	LoDObject* bunny = new LoDObject();
+	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon0.obj"));
+	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon1.obj"));
+	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon2.obj"));
 	lodObjects.push_back(bunny);
 
 	LoDObject* cylinder = new LoDObject();
 	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
+	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
+	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
 	lodObjects.push_back(cylinder);
-
-	LoDObject* ico = new LoDObject();
-	ico->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	ico->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	ico->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	ico->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	lodObjects.push_back(ico);
-
-	LoDObject* box = new LoDObject();
-	box->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	box->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box0.obj"));
-	box->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box1.obj"));
-	box->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "box2.obj"));
-	lodObjects.push_back(box);
-
-	LoDObject* camel = new LoDObject();
-	camel->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "camel.png"));
-	camel->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	camel->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	camel->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
-	lodObjects.push_back(camel);
-
-	LoDObject* cube = new LoDObject();
-	cube->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	cube->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-	cube->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-	cube->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cube.obj"));
-	lodObjects.push_back(cube);
 }
 
 void LevelOfDetail::LoadPipelineObjects()

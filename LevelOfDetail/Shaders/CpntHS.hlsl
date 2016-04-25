@@ -45,7 +45,10 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float3 N101    : NORMAL5;
 };
 
-//Returns a distance adaptive tessellation scale factor (0.0f -> 1.0f) 
+/*Returns a distance adaptive tessellation scale factor (0.0f -> 1.0f) 
+minDistance - Minimum distance that maximum tessellation factors should be applied at
+range       - Range beyond the minimum distance where tessellation will scale down to the minimum scaling factor
+*/
 float GetDistanceAdaptiveScaleFactor(float3 cameraPos, float3 edgePos0, float3 edgePos1, float minDistance, float range)
 {
 	float3 midPoint = (edgePos0 + edgePos1) * 0.5f;

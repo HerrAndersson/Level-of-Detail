@@ -17,13 +17,13 @@ namespace Renderer
 
 		CD3D11_VIEWPORT viewport;
 		
-		ID3D11DepthStencilState* dss_TestE_WriteE;
-		ID3D11DepthStencilState* dss_TestE_WriteD;
-		
 		ID3D11RasterizerState* rsBack;
 		ID3D11RasterizerState* rsFront;
 		ID3D11RasterizerState* rsNone;
 		ID3D11RasterizerState* rsWireframe;
+
+		ID3D11DepthStencilState* dssTestWrite;
+		ID3D11DepthStencilState* dssTestNoWrite;
 										 
 		ID3D11BlendState* bsAdditiveAlphaEnable;
 		ID3D11BlendState* bsDisable;
@@ -44,6 +44,9 @@ namespace Renderer
 		void SetRasterState(RasterState state);
 		void SetBlendState(BlendState state);
 		void SetDepthState(DepthState state);
+
+		ID3D11DepthStencilState* GetDSSTestWrite();
+		ID3D11DepthStencilState* GetDSSTestNoWrite();
 
 		void BeginScene(float red, float green, float blue, float alpha);
 		void EndScene();

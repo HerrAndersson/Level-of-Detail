@@ -10,7 +10,7 @@ If the object should move it needs to hold its own position. The distance would 
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::PHONG),
+	activeTechnique(LoDTechnique::CPNT),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0),
@@ -43,6 +43,8 @@ void LevelOfDetail::OnInit()
 
 	LoadPipelineObjects();
 	LoadAssets();
+
+	dx->SetBlendState(DirectXHandler::BlendState::ADDITIVE_ALPHA);
 }
 
 void LevelOfDetail::OnDestroy()
@@ -76,19 +78,26 @@ void LevelOfDetail::LoadAssets()
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
-	LoDObject* ico = new LoDObject();
-	ico->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	ico->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	ico->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	ico->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
-	lodObjects.push_back(ico);
-
 	LoDObject* bunny = new LoDObject();
 	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
 	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny0.obj"));
 	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny1.obj"));
 	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "bunny2.obj"));
 	lodObjects.push_back(bunny);
+
+	LoDObject* cylinder = new LoDObject();
+	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
+	lodObjects.push_back(cylinder);
+
+	LoDObject* ico = new LoDObject();
+	ico->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	ico->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	ico->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	ico->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "icosahedron.obj"));
+	lodObjects.push_back(ico);
 
 	LoDObject* box = new LoDObject();
 	box->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
@@ -103,13 +112,6 @@ void LevelOfDetail::LoadAssets()
 	camel->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
 	camel->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "camel.obj"));
 	lodObjects.push_back(camel);
-
-	LoDObject* cylinder = new LoDObject();
-	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "cylinder.obj"));
-	lodObjects.push_back(cylinder);
 
 	LoDObject* cube = new LoDObject();
 	cube->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
@@ -447,6 +449,7 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		if (object->unpopBlendTime > object->unpopBlendLimit)
 		{
 			object->unpopBlendTimerActive = false;
+			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
 		}
 		else
 		{
@@ -495,11 +498,12 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		UINT32 vertexSize = sizeof(Vertex);
 		UINT32 offset = 0;
 
+		//----------------------------- Old LoD -----------------------------
 		//Set resources for OLD
 		if (write1)
-			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
 		else
-			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
+			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestNoWrite(), 1);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndexPrevious]->vertexBuffer, &vertexSize, &offset);
 		if (object->texture)
@@ -509,11 +513,12 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		SetCBPerObject(worldMatrix, colors[0], alpha1);
 		deviceContextRef->Draw(object->models[object->lodIndexPrevious]->vertexBufferSize, 0);
 
+		//----------------------------- New LoD -----------------------------
 		//Set resources for NEW
 		if (write2)
-			dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
+			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestWrite(), 1);
 		else
-			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
+			deviceContextRef->OMSetDepthStencilState(dx->GetDSSTestNoWrite(), 1);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
 		if (object->texture)
@@ -525,7 +530,7 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 	}
 	else
 	{
-		//Decide lod-level of objects and update blend timer etc
+		//Decide lod-level of objects
 		float3 camPos = camera.GetPosition();
 		float length = camPos.Length();
 
@@ -565,7 +570,6 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
 
 		//Render current index
-		dx->SetDepthState(DirectXHandler::DepthState::TEST_WRITE);
 		SetCBPerObject(worldMatrix, colors[0], 1.0f);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
@@ -577,6 +581,17 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
+
+	//Decide lod-level
+	float3 camPos = camera.GetPosition();
+	float length = camPos.Length();
+
+	if (length > LOD_LEVELS[1])
+		object->lodIndex = 2;
+	else if (length < LOD_LEVELS[0])
+		object->lodIndex = 0;
+	else
+		object->lodIndex = 1;
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);
@@ -596,6 +611,17 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 {
 	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
+
+	//Decide lod-level
+	float3 camPos = camera.GetPosition();
+	float length = camPos.Length();
+
+	if (length > LOD_LEVELS[1])
+		object->lodIndex = 2;
+	else if (length < LOD_LEVELS[0])
+		object->lodIndex = 0;
+	else
+		object->lodIndex = 1;
 
 	//Set resources
 	UINT32 vertexSize = sizeof(Vertex);

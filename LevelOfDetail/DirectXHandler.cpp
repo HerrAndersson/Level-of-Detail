@@ -135,16 +135,15 @@ namespace Renderer
 		depthStencilDesc.BackFace = depthStencilDesc.FrontFace;
 
 		//Create depth state with test enabled and write enabled
-		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteE);
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dssTestWrite);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteE. " + GetErrorMessageFromHRESULT(result));
+			throw std::runtime_error("DirectXHandler: Error creating dssTestWrite. " + GetErrorMessageFromHRESULT(result));
 
 		//Create depth state with test enabled and write disabled
-		//depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		result = device->CreateDepthStencilState(&depthStencilDesc, &dss_TestE_WriteD);
+		result = device->CreateDepthStencilState(&depthStencilDesc, &dssTestNoWrite);
 		if (FAILED(result))
-			throw std::runtime_error("DirectXHandler: Error creating dss_TestE_WriteD. " + GetErrorMessageFromHRESULT(result));
+			throw std::runtime_error("DirectXHandler: Error creating dssTestNoWrite. " + GetErrorMessageFromHRESULT(result));
 
 		////////////////////////////////////////////////////////// Blend-states //////////////////////////////////////////////////////////
 		D3D11_BLEND_DESC omDesc;
@@ -173,7 +172,7 @@ namespace Renderer
 		viewport = CD3D11_VIEWPORT(0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT, 0.0f, 1.0f);
 
 		deviceContext->RSSetState(rsBack);
-		deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 0);
+		deviceContext->OMSetDepthStencilState(dssTestWrite, 0);
 		deviceContext->RSSetViewports(1, &viewport);
 		deviceContext->OMSetRenderTargets(1, &rtvBackBuffer, dsvBackBuffer);
 	}
@@ -188,8 +187,8 @@ namespace Renderer
 		SAFE_RELEASE(swapChain);
 		SAFE_RELEASE(device);
 		SAFE_RELEASE(deviceContext);
-		SAFE_RELEASE(dss_TestE_WriteE);
-		SAFE_RELEASE(dss_TestE_WriteD);
+		SAFE_RELEASE(dssTestWrite);
+		SAFE_RELEASE(dssTestNoWrite);
 		SAFE_RELEASE(rsBack);
 		SAFE_RELEASE(rsFront);
 		SAFE_RELEASE(rsNone);
@@ -276,18 +275,15 @@ namespace Renderer
 
 	void DirectXHandler::SetDepthState(DepthState state)
 	{
-
-		// Kan vara problem här? Med StencilRef, eller ClearDepthStencilView
-
 		switch (state)
 		{
 		case Renderer::DirectXHandler::DepthState::TEST_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(dss_TestE_WriteE, 1);
+			deviceContext->OMSetDepthStencilState(dssTestWrite, 1);
 		}
 		case Renderer::DirectXHandler::DepthState::TEST_NO_WRITE:
 		{
-			deviceContext->OMSetDepthStencilState(dss_TestE_WriteD, 1);
+			deviceContext->OMSetDepthStencilState(dssTestNoWrite, 1);
 			break;
 		}
 		default:
@@ -309,5 +305,15 @@ namespace Renderer
 
 
 		swapChain->Present(0, 0);
+	}
+
+	ID3D11DepthStencilState* DirectXHandler::GetDSSTestWrite()
+	{
+		return dssTestWrite;
+	}
+
+	ID3D11DepthStencilState* DirectXHandler::GetDSSTestNoWrite()
+	{
+		return dssTestNoWrite;
 	}
 }

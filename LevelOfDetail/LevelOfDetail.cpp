@@ -10,7 +10,7 @@ If the object should move it needs to hold its own position. The distance would 
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::UNPOPPING),
+	activeTechnique(LoDTechnique::PHONG),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0),
@@ -30,6 +30,8 @@ void LevelOfDetail::OnInit()
 	dx = new DirectXHandler(Win32Application::GetHwnd());
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
+
+	profiler.Init(deviceRef);
 
 	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(0.3f);
@@ -314,6 +316,8 @@ void LevelOfDetail::OnUpdate()
 
 	camera.Update(frameTime, gameTime, moved, difference);
 
+	profiler.CollectData(deviceContextRef);
+
 #if _DEBUG
 	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
 	SetWindowText(Win32Application::GetHwnd(), wstring(s.begin(), s.end()).c_str());
@@ -324,6 +328,12 @@ void LevelOfDetail::OnUpdate()
 //Render the scene
 void LevelOfDetail::OnRender()
 {
+	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
+
+	deviceContextRef->Begin(profiler.queryDisjoint);
+	deviceContextRef->End(profiler.queryBeginFrame);
+	deviceContextRef->Begin(profiler.queryPipelineStatistics);
+
 	LoDObject* object = lodObjects[objectIndex];
 
 	//Decide lod-level. For unpopping it is decided in RenderUnpoppingLOD-function
@@ -364,6 +374,8 @@ void LevelOfDetail::OnRender()
 		break;
 	}
 
+	deviceContextRef->End(profiler.queryRenderObject);
+
 	//float increment = XM_2PI / 360.0f;
 	//if (rotation.x < XM_PI && rotation.y >= XM_PI)
 	//{
@@ -380,14 +392,21 @@ void LevelOfDetail::OnRender()
 	//	rotation.z += increment;
 	//}
 
+
 	//dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
 
+
 	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+
+	deviceContextRef->End(profiler.queryEndFrame);
+	deviceContextRef->End(profiler.queryDisjoint);
+	deviceContextRef->End(profiler.queryPipelineStatistics);
+
+	dx->EndScene();
 }
 
 void LevelOfDetail::RenderNoLOD(LoDObject* object)
 {
-	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
@@ -404,13 +423,10 @@ void LevelOfDetail::RenderNoLOD(LoDObject* object)
 		SetCBPerObject(worldMatrix, colors[i], 1.0f);
 		deviceContextRef->Draw(object->models[0]->vertexBufferSize, 0);
 	}
-
-	dx->EndScene();
 }
 
 void LevelOfDetail::RenderStaticLOD(LoDObject* object)
 {
-	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
@@ -423,13 +439,10 @@ void LevelOfDetail::RenderStaticLOD(LoDObject* object)
 	//Render
 	SetCBPerObject(worldMatrix, colors[0], 1.0f);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
-
-	dx->EndScene();
 }
 
 void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 {
-	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetCBPerFrame(viewMatrix, projectionMatrix);
 
 	if (object->unpopBlendTimerActive)
@@ -571,13 +584,10 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		SetCBPerObject(worldMatrix, colors[0], 1.0f);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
-
-	dx->EndScene();
 }
 
 void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 {
-	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
@@ -590,13 +600,10 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 	//Render
 	SetTessellationCBPerObject(worldMatrix, colors[0]);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
-
-	dx->EndScene();
 }
 
 void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 {
-	dx->BeginScene(0.0f, 0.75f, 1.0f, 1.0f);
 	SetTessellationCBPerFrame(viewMatrix, projectionMatrix);
 
 	//Set resources
@@ -609,8 +616,6 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 	//Render
 	SetTessellationCBPerObject(worldMatrix, colors[0]);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
-
-	dx->EndScene();
 }
 
 void LevelOfDetail::OnKeyDown(UINT8 key)

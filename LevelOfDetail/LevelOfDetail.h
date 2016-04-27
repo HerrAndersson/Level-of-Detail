@@ -9,6 +9,7 @@
 #include "AssetManager.h"
 #include "BufferStructs.h"
 #include "MouseHandler.h"
+#include "Profiling.h"
 
 using namespace DirectX;
 using namespace Math;
@@ -41,6 +42,7 @@ private:
 	StepTimer timer;
 	DirectXHandler* dx;
 	MouseHandler mouse;
+	Profiler profiler;
 
 	vector<LoDObject*> lodObjects;
 

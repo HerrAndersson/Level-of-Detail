@@ -90,6 +90,9 @@
     <ClInclude Include="ScreenGrab.h">
       <Filter>AssetHandling</Filter>
     </ClInclude>
+    <ClInclude Include="Profiling.h">
+      <Filter>Core\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">

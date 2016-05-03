@@ -104,13 +104,13 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 	float3 V = (B003 + B030 + B300) / 3.0f;
 	output.B111 = E + ((E - V) / 2.0f);
 
-	//Compute the quadratic normal control points, and rotate into world space
-	float fV12 = 2.0f * dot(B030 - B003, N002 + N020) / dot(B030 - B003, B030 - B003);
-	output.N110 = normalize(N002 + N020 - fV12 * (B030 - B003));
-	float fV23 = 2.0f * dot(B300 - B030, N020 + N200) / dot(B300 - B030, B300 - B030);
-	output.N011 = normalize(N020 + N200 - fV23 * (B300 - B030));
-	float fV31 = 2.0f * dot(B003 - B300, N200 + N002) / dot(B003 - B300, B003 - B300);
-	output.N101 = normalize(N200 + N002 - fV31 * (B003 - B300));
+	// Compute the quadratic normal control points, and rotate into world space
+	float V12 = 2.0f * dot(B030 - B003, N002 + N020) / dot(B030 - B003, B030 - B003);
+	output.N110 = normalize(N002 + N020 - V12 * (B030 - B003));
+	float V23 = 2.0f * dot(B300 - B030, N020 + N200) / dot(B300 - B030, B300 - B030);
+	output.N011 = normalize(N020 + N200 - V23 * (B300 - B030));
+	float V31 = 2.0f * dot(B003 - B300, N200 + N002) / dot(B003 - B300, B003 - B300);
+	output.N101 = normalize(N200 + N002 - V31 * (B003 - B300));
 
 	return output;
 }

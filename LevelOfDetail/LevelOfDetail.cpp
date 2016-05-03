@@ -428,8 +428,6 @@ void LevelOfDetail::OnRender()
 	deviceContextRef->End(profiler.queryDisjoint);
 	deviceContextRef->End(profiler.queryPipelineStatistics);
 
-
-
 	dx->EndScene();
 }
 

@@ -69,14 +69,17 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 		patch[1].normal * u + 
 		patch[2].normal * v;
 
-	//Transform the position
+	normal = normalize(normal);
+
+	//Transform position into clip-space
 	float4 p = mul(float4(position, 1.0f), viewMatrix);
 	p = mul(p, projectionMatrix);
-
-	//Output
 	output.pos = p;
+
+	//Linearly interpolate the texture coords
 	output.uv = patch[0].uv * w + patch[1].uv * u + patch[2].uv * v;
-	output.normal = normalize(normal);
+
+	output.normal = normal;
 
 	return output;
 }

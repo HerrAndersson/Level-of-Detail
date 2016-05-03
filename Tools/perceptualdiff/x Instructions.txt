@@ -1,0 +1,3 @@
+Open cmd by shift+right clicking on this folder, choose open command prompt.
+Put all images in the Images folder
+Run the command: python run.py

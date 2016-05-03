@@ -114,7 +114,7 @@ namespace Renderer
 		ID3DBlob* shaderBuffer = nullptr;
 		ID3D11HullShader* hullShader;
 
-		result = D3DCompileFromFile(fileName.c_str(), NULL, NULL, "main", "hs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
+		result = D3DCompileFromFile(fileName.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "hs_5_0", compileFlags, 0, &shaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
 			if (errorMessage)

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LevelOfDetail.h"
+#include <stdio.h>
 
 /*
 
@@ -17,7 +18,7 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	objectIndex(0),
 	tessellationMinDistance(1.0f),
 	tessellationRange(25.0f),
-	tessellationFactor(5.0f)
+	tessellationFactor(3.0f)
 {
 	for (int i = 0; i < 100; i++)
 	{
@@ -27,6 +28,9 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 
 void LevelOfDetail::OnInit()
 {
+	string s = "performance " + std::to_string(activeTechnique) + ".txt";
+	std::remove(s.c_str());
+
 	dx = new DirectXHandler(Win32Application::GetHwnd());
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
@@ -80,29 +84,40 @@ void LevelOfDetail::LoadAssets()
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
-	LoDObject* bunny = new LoDObject();
-	bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
-	bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny1.obj"));
-	bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
-	bunny->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny3.obj"));
-	bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
-	lodObjects.push_back(bunny);
+	//LoDObject* bunny = new LoDObject();
+	//bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
+	//bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny1.obj"));
+	//bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
+	//bunny->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny3.obj"));
+	//bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
+	//lodObjects.push_back(bunny);
 
-	//LoDObject* dragon = new LoDObject();
-	//dragon->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	//dragon->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon0.obj"));
-	//dragon->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon1.obj"));
-	//dragon->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon2.obj"));
-	//lodObjects.push_back(dragon);
+	LoDObject* camel = new LoDObject();
+	camel->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	camel->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
+	camel->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
+	camel->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
+	camel->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
+	camel->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
+	lodObjects.push_back(camel);
+
+	LoDObject* icosahedron = new LoDObject();
+	icosahedron->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	icosahedron->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
+	icosahedron->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
+	icosahedron->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
+	icosahedron->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
+	icosahedron->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
+	lodObjects.push_back(icosahedron);
 
 	LoDObject* cylinder = new LoDObject();
 	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
-	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
-	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
-	cylinder->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
-	cylinder->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cylinder.obj"));
+	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
+	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
+	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
+	cylinder->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
+	cylinder->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
 	lodObjects.push_back(cylinder);
 }
 
@@ -286,6 +301,14 @@ void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color)
 	dataPtr = static_cast<CBPerObjectHS*>(mappedResource.pData);
 	dataPtr->cameraPosition = camera.GetPosition();
 	dataPtr->tessellationFactor = tessellationFactor;
+
+	XMVECTOR v = XMVectorSet(0, 0, 1, 0);
+	XMMATRIX r = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&camera.GetRotation()));
+	v = XMVector3TransformCoord(v, r);
+	v = XMVectorNegate(v);
+	XMVectorSetW(v, 1.0f);
+
+	dataPtr->viewVector = v;
 	dataPtr->minDistance = tessellationMinDistance;
 	dataPtr->range = tessellationRange;
 	deviceContextRef->Unmap(cbPerObjectHS, 0);
@@ -316,7 +339,13 @@ void LevelOfDetail::OnUpdate()
 
 	camera.Update(frameTime, gameTime, moved, difference);
 
-	profiler.CollectData(deviceContextRef);
+	profiler.CollectData(deviceContextRef, "performance " + std::to_string(activeTechnique) + ".txt");
+
+	//if(timer.GetFrameCount() % 1000 == 0)
+		//dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
+
+	//if (timer.GetFrameCount() > 50)
+	//	int g = 5;
 
 #if _DEBUG
 	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
@@ -376,7 +405,7 @@ void LevelOfDetail::OnRender()
 
 	deviceContextRef->End(profiler.queryRenderObject);
 
-	//float increment = XM_2PI / 360.0f;
+	//float increment =( XM_2PI / 360.0f)/100.0f;
 	//if (rotation.x < XM_PI && rotation.y >= XM_PI)
 	//{
 	//	rotation.x += increment;
@@ -393,14 +422,13 @@ void LevelOfDetail::OnRender()
 	//}
 
 
-	//dx->SaveBackBufferToFile(StrToWStr("Images/img" + to_string(timer.GetFrameCount()) + ".png"));
-
-
-	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y - XM_PIDIV2, rotation.z) * XMMatrixTranslation(0.0f, -5.0f, 0.0f);
 
 	deviceContextRef->End(profiler.queryEndFrame);
 	deviceContextRef->End(profiler.queryDisjoint);
 	deviceContextRef->End(profiler.queryPipelineStatistics);
+
+
 
 	dx->EndScene();
 }
@@ -678,6 +706,18 @@ void LevelOfDetail::OnKeyUp(UINT8 key)
 {
 	camera.OnKeyUp(key);
 	freelookCamera.OnKeyUp(key);
+
+	switch (key)
+	{
+	case 'N':
+		tessellationFactor-=0.1f;
+		break;
+	case 'M':
+		tessellationFactor+=0.1f;
+		break;
+	default:
+		break;
+	}
 }
 
 void LevelOfDetail::SetNoLOD()

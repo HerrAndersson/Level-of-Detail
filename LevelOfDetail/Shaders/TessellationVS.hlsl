@@ -28,6 +28,7 @@ VS_OUT main(VS_IN input)
 	float4 pos = mul(float4(input.pos, 1.0f), worldMatrix);
 
 	output.pos = pos;
+
 	output.normal = normalize(mul(input.normal, (float3x3)worldMatrix));
 	output.uv = input.uv;
 

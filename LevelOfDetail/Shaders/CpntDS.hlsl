@@ -91,6 +91,7 @@ DS_OUT main(HS_CONSTANT_DATA_OUTPUT hsConstData, float3 domainLocation : SV_Doma
 
 	output.pos = p;
 	output.uv = patch[0].uv * w + patch[1].uv * u + patch[2].uv * v;
+
 	output.normal = normalize(normal);
 
 	return output;

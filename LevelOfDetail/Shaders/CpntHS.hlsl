@@ -1,12 +1,14 @@
 /*----------------------------------------------------------------------------------------------------------------------
 | Hull shader for the technique Curved PN Triangles																	   |
 ----------------------------------------------------------------------------------------------------------------------*/
+#include "TessellationHelpers.hlsli"
 #define NUM_CONTROL_POINTS 3
 
 cbuffer cbPerPatch : register(b0)
 {
 	float3 cameraPosition;
 	float tessellationFactor;
+	float3 viewVector;
 	float minDistance;
 	float range;
 };
@@ -45,23 +47,23 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float3 N101    : NORMAL5;
 };
 
-/*Returns a distance adaptive tessellation scale factor (0.0f -> 1.0f) 
-minDistance - Minimum distance that maximum tessellation factors should be applied at
-range       - Range beyond the minimum distance where tessellation will scale down to the minimum scaling factor
-*/
-float GetDistanceAdaptiveScaleFactor(float3 cameraPos, float3 edgePos0, float3 edgePos1, float minDistance, float range)
-{
-	float3 midPoint = (edgePos0 + edgePos1) * 0.5f;
-	float dist = distance(midPoint, cameraPos) - minDistance;
-	float scale = 1.0f - saturate(dist / range);
-
-	return scale;
-}
-
 // Patch Constant Function
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POINTS> inputPatch, uint PatchID : SV_PrimitiveID)
 {
-	HS_CONSTANT_DATA_OUTPUT output;
+	HS_CONSTANT_DATA_OUTPUT output = (HS_CONSTANT_DATA_OUTPUT)0;
+
+	// Aquire patch edge dot product between patch edge normal and view vector 
+	float edgeDot[3];
+	edgeDot[0] = GetEdgeDotProduct(inputPatch[2].normal, inputPatch[0].normal, normalize(viewVector.xyz));
+	edgeDot[1] = GetEdgeDotProduct(inputPatch[0].normal, inputPatch[1].normal, normalize(viewVector.xyz));
+	edgeDot[2] = GetEdgeDotProduct(inputPatch[1].normal, inputPatch[2].normal, normalize(viewVector.xyz));
+
+	//If all 3 fail the test then back face cull
+	if (BackFaceCull(edgeDot[0], edgeDot[1], edgeDot[2], 0.5f) == true)
+	{
+		// Cull the patch (all the tess factors are set to 0)
+		return output;
+	}
 
 	output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = tessellationFactor;
 
@@ -77,7 +79,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 	output.EdgeTessFactor[2] = lerp(1.0f, output.EdgeTessFactor[2], adaptiveScaleFactor);
 
 	//Inside tess factor is the average of the three edge factors
-	output.InsideTessFactor = (output.EdgeTessFactor[0] + output.EdgeTessFactor[1] + output.EdgeTessFactor[2]) / 3.0f;
+	output.InsideTessFactor = (output.EdgeTessFactor[0] + output.EdgeTessFactor[1] + output.EdgeTessFactor[2]) / 3.0f;;
 
 	//Assign Positions and normals
 	float3 B003 = inputPatch[0].pos.xyz;
@@ -114,7 +116,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 }
 
 [domain("tri")]
-[partitioning("fractional_odd")]
+[partitioning("integer")]
 [outputtopology("triangle_cw")]
 [patchconstantfunc("CalcHSPatchConstants")]
 [outputcontrolpoints(3)]

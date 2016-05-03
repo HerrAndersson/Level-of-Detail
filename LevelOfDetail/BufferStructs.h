@@ -23,7 +23,8 @@ struct CBPerObjectHS
 {
 	float3 cameraPosition;
 	float tessellationFactor;
+	float3 viewVector;
 	float minDistance;
 	float range;
-	XMFLOAT2 pad;
+	XMFLOAT3 pad;
 };

@@ -31,7 +31,7 @@ for dir in dir_list:
     target = open('OutputTxt/' + dir + '.txt', 'w')
     target.truncate()
     
-    #Go through and compare all images in the folder. Should be compared to the reference, which is rendered with the mesh of the level above
+    #Go through and compare all images in the folder. Compared to the reference, which is rendered with the mesh of the level above
     i = 0
     while i < len(image_list):
     

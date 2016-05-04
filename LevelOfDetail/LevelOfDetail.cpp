@@ -11,7 +11,7 @@ If the object should move it needs to hold its own position. The distance would 
 
 LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	DXSample(width, height, name),
-	activeTechnique(LoDTechnique::PHONG),
+	activeTechnique(LoDTechnique::CPNT),
 	wireframeModeActive(false),
 	freelookCameraActive(false),
 	rotation(0,0,0),
@@ -37,7 +37,7 @@ void LevelOfDetail::OnInit()
 
 	profiler.Init(deviceRef);
 
-	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
+	camera.Init({ 0.0f, 2.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(0.3f);
 	camera.SetTurnSpeed(XM_PI);
 	freelookCamera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::MOUSE);
@@ -85,7 +85,7 @@ void LevelOfDetail::LoadAssets()
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
 	//LoDObject* bunny = new LoDObject();
-	//bunny->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
+	//bunny->texture = nullptr;
 	//bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
 	//bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny1.obj"));
 	//bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
@@ -93,32 +93,14 @@ void LevelOfDetail::LoadAssets()
 	//bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
 	//lodObjects.push_back(bunny);
 
-	LoDObject* camel = new LoDObject();
-	camel->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	camel->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
-	camel->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
-	camel->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
-	camel->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
-	camel->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/camel.obj"));
-	lodObjects.push_back(camel);
-
-	LoDObject* icosahedron = new LoDObject();
-	icosahedron->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	icosahedron->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
-	icosahedron->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
-	icosahedron->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
-	icosahedron->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
-	icosahedron->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Test/icosahedron.obj"));
-	lodObjects.push_back(icosahedron);
-
-	LoDObject* cylinder = new LoDObject();
-	cylinder->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "sand.png"));
-	cylinder->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
-	cylinder->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
-	cylinder->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
-	cylinder->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
-	cylinder->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/cube.obj"));
-	lodObjects.push_back(cylinder);
+	LoDObject* robot = new LoDObject();
+	robot->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "robot.png"));
+	robot->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
+	robot->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
+	robot->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
+	robot->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
+	robot->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
+	lodObjects.push_back(robot);
 }
 
 void LevelOfDetail::LoadPipelineObjects()
@@ -215,7 +197,7 @@ void LevelOfDetail::LoadPipelineObjects()
 	}
 }
 
-void LevelOfDetail::SetCBPerObject(matrix world, float3 color, float blendFactor)
+void LevelOfDetail::SetCBPerObject(matrix world, float3 color, float blendFactor, int hasTexture)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -243,6 +225,7 @@ void LevelOfDetail::SetCBPerObject(matrix world, float3 color, float blendFactor
 	dataPtrPS = static_cast<CBPerObjectPS*>(mappedResource.pData);
 	dataPtrPS->blendFactor = blendFactor;
 	dataPtrPS->color = color;
+	dataPtrPS->hasTexture = hasTexture;
 	deviceContextRef->Unmap(cbPerObjectVS, 0);
 
 	deviceContextRef->PSSetConstantBuffers(0, 1, &cbPerObjectPS);
@@ -285,9 +268,9 @@ void LevelOfDetail::SetTessellationCBPerFrame(matrix view, matrix projection)
 
 	deviceContextRef->DSSetConstantBuffers(0, 1, &cbPerFrameDS);
 }
-void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color)
+void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color, int hasTexture)
 {
-	SetCBPerObject(world, color, 1.0f);
+	SetCBPerObject(world, color, 1.0f, hasTexture);
 
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -422,7 +405,7 @@ void LevelOfDetail::OnRender()
 	//}
 
 
-	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y - XM_PIDIV2, rotation.z) * XMMatrixTranslation(0.0f, -5.0f, 0.0f);
+	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y - (XM_PIDIV4), rotation.z) * XMMatrixTranslation(0.0f, -15.0f, 0.0f);
 
 	deviceContextRef->End(profiler.queryEndFrame);
 	deviceContextRef->End(profiler.queryDisjoint);
@@ -439,14 +422,19 @@ void LevelOfDetail::RenderNoLOD(LoDObject* object)
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
 	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[0]->vertexBuffer, &vertexSize, &offset);
+
+	int hasTexture = 0;
 	if (object->texture)
+	{
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+		hasTexture = 10;
+	}
 
 	//Render
 	for (int i = 0; i < 50; i++)
 	{
 		worldMatrix *= XMMatrixTranslation(i * (colors[i].x * colors[i].y) , 0, i * colors[i].z);
-		SetCBPerObject(worldMatrix, colors[i], 1.0f);
+		SetCBPerObject(worldMatrix, colors[i], 1.0f, hasTexture);
 		deviceContextRef->Draw(object->models[0]->vertexBufferSize, 0);
 	}
 }
@@ -459,11 +447,16 @@ void LevelOfDetail::RenderStaticLOD(LoDObject* object)
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
 	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+
+	int hasTexture = 0;
 	if (object->texture)
+	{
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+		hasTexture = 10;
+	}
 
 	//Render
-	SetCBPerObject(worldMatrix, colors[0], 1.0f);
+	SetCBPerObject(worldMatrix, colors[0], 1.0f, hasTexture);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 }
 
@@ -533,11 +526,16 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndexPrevious]->vertexBuffer, &vertexSize, &offset);
+
+		int hasTexture = 0;
 		if (object->texture)
+		{
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+			hasTexture = 10;
+		}
 
 		//Render OLD
-		SetCBPerObject(worldMatrix, colors[0], alpha1);
+		SetCBPerObject(worldMatrix, colors[0], alpha1, hasTexture);
 		deviceContextRef->Draw(object->models[object->lodIndexPrevious]->vertexBufferSize, 0);
 
 		//----------------------------- New LoD -----------------------------
@@ -548,11 +546,15 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 			dx->SetDepthState(DirectXHandler::DepthState::TEST_NO_WRITE);
 
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+		hasTexture = 0;
 		if (object->texture)
+		{
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+			hasTexture = 10;
+		}
 
 		//Render NEW
-		SetCBPerObject(worldMatrix, colors[0], alpha2);
+		SetCBPerObject(worldMatrix, colors[0], alpha2, hasTexture);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
 	else
@@ -603,11 +605,15 @@ void LevelOfDetail::RenderUnpoppingLOD(LoDObject* object)
 		UINT32 vertexSize = sizeof(Vertex);
 		UINT32 offset = 0;
 		deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+		int hasTexture = 0;
 		if (object->texture)
+		{
 			deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+			hasTexture = 10;
+		}
 
 		//Render current index
-		SetCBPerObject(worldMatrix, colors[0], 1.0f);
+		SetCBPerObject(worldMatrix, colors[0], 1.0f, hasTexture);
 		deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 	}
 }
@@ -620,11 +626,15 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
 	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+	int hasTexture = 0;
 	if (object->texture)
+	{
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+		hasTexture = 10;
+	}
 
 	//Render
-	SetTessellationCBPerObject(worldMatrix, colors[0]);
+	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 }
 
@@ -636,11 +646,15 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 	UINT32 vertexSize = sizeof(Vertex);
 	UINT32 offset = 0;
 	deviceContextRef->IASetVertexBuffers(0, 1, &object->models[object->lodIndex]->vertexBuffer, &vertexSize, &offset);
+	int hasTexture = 0;
 	if (object->texture)
+	{
 		deviceContextRef->PSSetShaderResources(0, 1, &object->texture);
+		hasTexture = 10;
+	}
 
 	//Render
-	SetTessellationCBPerObject(worldMatrix, colors[0]);
+	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 }
 

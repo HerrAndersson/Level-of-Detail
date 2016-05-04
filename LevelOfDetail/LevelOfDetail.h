@@ -74,11 +74,11 @@ private:
 	void LoadAssets();
 	void LoadPipelineObjects();
 
-	void SetCBPerObject(matrix world, float3 color, float blendFactor);
+	void SetCBPerObject(matrix world, float3 color, float blendFactor, int hasTexture);
 	void SetCBPerFrame(matrix view, matrix projection);
 
 	void SetTessellationCBPerFrame(matrix view, matrix projection);
-	void SetTessellationCBPerObject(matrix world, float3 color);
+	void SetTessellationCBPerObject(matrix world, float3 color, int hasTexture);
 	
 	void RenderNoLOD(LoDObject* object);
 	void RenderStaticLOD(LoDObject* object);

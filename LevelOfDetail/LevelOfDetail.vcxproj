@@ -185,7 +185,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TessellationHelpers.hlsli" />
+    <None Include="Shaders\TessellationHelpers.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

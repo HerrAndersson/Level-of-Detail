@@ -8,6 +8,7 @@ cbuffer bufferPerObject : register(b0)
 {
 	float3 color;
 	float blendFactor;
+	int hasTexture;
 };
 
 struct VS_OUT
@@ -19,11 +20,19 @@ struct VS_OUT
 
 float4 main(VS_OUT input) : SV_TARGET
 {
-	//float3 color = diffuse.Sample(samplerWrap, input.uv);
+	float4 finalColor;
+
+	if (hasTexture > 1)
+	{
+		finalColor = diffuse.Sample(samplerWrap, input.uv), 1.0f;
+	}
+	else
+	{
+		finalColor = float4(color, 1.0f);
+	}
 
 	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, 100));
-	float lightIntensity = saturate(dot(input.normal, lightDir));
-	float4 finalColor = saturate(float4(color, 1.0f) * lightIntensity);
+	finalColor = float4(finalColor * max(0, dot(input.normal, lightDir)));
 
 	return float4(finalColor.xyz, blendFactor);
 }

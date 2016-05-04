@@ -135,7 +135,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TessellationHelpers.hlsli">
+    <None Include="Shaders\TessellationHelpers.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

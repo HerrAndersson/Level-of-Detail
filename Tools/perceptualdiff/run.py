@@ -5,37 +5,54 @@ def get_num(x):
     return int(''.join(ele for ele in x if ele.isdigit()))
 
 pdiffer = PDiffer(bin='perceptualdiff')
-content_list = []
 
-#Get names of all files in the folder
-for content in os.listdir("./Images"): # "." means current directory
-    content_list.append(content)
+reference_list = []
+#Get names of all reference images
+for content in os.listdir('./Images/Reference'): # "." means current directory
+    reference_list.append(content)
 
-#Open and erase the contents of the output text file
-target = open('OutputTxt/out.txt', 'w')
-target.truncate()
+reference_list.sort();
 
-##Go through and compare all images in the folder. img0 compared to img1, img1 compared to img2 etc.
-i = 0
-while i < len(content_list) - 1:
-    result = pdiffer.pdiff('Images/' + content_list[i], 'Images/' + content_list[i+1], threshold = 0)
+#Get sub directories containing the images for each technique
+dir_list = next(os.walk('./Images'))[1]
+dir_list.remove('Reference')
 
-    str = unicode(result)
-    if not result:
-    	print('PASS')
-    else:
-    	print('FAIL')
-    	print(unicode(get_num(str)) + '\n')
+for dir in dir_list:
+    print(dir)
+
+    image_list = []
+    #Get names of all files in the folder
+    for content in os.listdir('./Images/'+ dir): # "." means current directory
+        image_list.append(content)
     
-    if result:
-        target.write(unicode(get_num(str)) + '\n')
-    else:
-        target.write(unicode(0) + '\n')
+    image_list.sort();
 
-    i = i + 1
+    #Open and erase the contents of the output text file
+    target = open('OutputTxt/' + dir + '.txt', 'w')
+    target.truncate()
     
-target.close()
-
+    #Go through and compare all images in the folder. Should be compared to the reference, which is rendered with the mesh of the level above
+    i = 0
+    while i < len(image_list):
+    
+        #Todo: Compare content_list with reference_list
+        result = pdiffer.pdiff('Images/' + dir + '/' + image_list[i], 'Images/Reference/' + reference_list[i], threshold = 0)
+    
+        str = unicode(result)
+        if not result:
+        	print('PASS')
+        else:
+        	print('FAIL')
+        	print(unicode(get_num(str)) + '\n')
+        
+        if result:
+            target.write(unicode(get_num(str)) + '\n')
+        else:
+            target.write(unicode(0) + '\n')
+    
+        i = i + 1
+        
+    target.close()
 
 
 

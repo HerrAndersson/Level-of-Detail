@@ -5,8 +5,8 @@ namespace Renderer
 {
 	struct VertexShaderData
 	{
-		ID3D11VertexShader* vertexShader;
-		ID3D11InputLayout* inputLayout;
+		ID3D11VertexShader* vertexShader = nullptr;
+		ID3D11InputLayout* inputLayout = nullptr;
 
 		VertexShaderData() {}
 		VertexShaderData(ID3D11VertexShader* vs, ID3D11InputLayout* il)

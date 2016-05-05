@@ -37,7 +37,7 @@ void LevelOfDetail::OnInit()
 
 	profiler.Init(deviceRef);
 
-	camera.Init({ 0.0f, 2.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
+	camera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(0.3f);
 	camera.SetTurnSpeed(XM_PI);
 	freelookCamera.Init({ 0.0f, 0.0f, -10.0f }, Camera::CameraMode::MOUSE);
@@ -84,23 +84,25 @@ void LevelOfDetail::LoadAssets()
 	if (FAILED(hr))
 		throw runtime_error("AssetManager::LoadTexture: Failed in CoInitializeEx. " + GetErrorMessageFromHRESULT(hr));
 
-	//LoDObject* bunny = new LoDObject();
-	//bunny->texture = nullptr;
-	//bunny->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny0.obj"));
-	//bunny->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny1.obj"));
-	//bunny->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny2.obj"));
-	//bunny->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny3.obj"));
-	//bunny->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Bunny/bunny4.obj"));
-	//lodObjects.push_back(bunny);
+	LoDObject* object = nullptr;
+	
+	//object = new LoDObject();
+	//object->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "metal.jpg"));
+	//object->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Truck/truck0.obj"));
+	//object->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Truck/truck1.obj"));
+	//object->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Truck/truck2.obj"));
+	//object->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Truck/truck3.obj"));
+	//object->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Truck/truck4.obj"));
+	//lodObjects.push_back(object);
 
-	LoDObject* robot = new LoDObject();
-	robot->texture = AssetManager::LoadTexture(deviceRef, string(TEXTURE_PATH + "robot.png"));
-	robot->models[0] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
-	robot->models[1] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
-	robot->models[2] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
-	robot->models[3] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
-	robot->models[4] = AssetManager::LoadModel(deviceRef, string(MODEL_PATH + "Test/robot.obj"));
-	lodObjects.push_back(robot);
+	object = new LoDObject();
+	object->texture = nullptr;
+	object->models[0] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon0.obj"));
+	object->models[1] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon1.obj"));
+	object->models[2] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon2.obj"));
+	object->models[3] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon3.obj"));
+	object->models[4] = AssetManager::LoadModelNoUV(deviceRef, string(MODEL_PATH + "Dragon/dragon4.obj"));
+	lodObjects.push_back(object);
 }
 
 void LevelOfDetail::LoadPipelineObjects()
@@ -268,7 +270,7 @@ void LevelOfDetail::SetTessellationCBPerFrame(matrix view, matrix projection)
 
 	deviceContextRef->DSSetConstantBuffers(0, 1, &cbPerFrameDS);
 }
-void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color, int hasTexture)
+void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color, int hasTexture, int lodIndex)
 {
 	SetCBPerObject(world, color, 1.0f, hasTexture);
 
@@ -292,8 +294,14 @@ void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color, int h
 	XMVectorSetW(v, 1.0f);
 
 	dataPtr->viewVector = v;
-	dataPtr->minDistance = tessellationMinDistance;
-	dataPtr->range = tessellationRange;
+
+	dataPtr->minDistance = 0;
+
+	if (lodIndex < 4)
+		dataPtr->range = LOD_LEVELS[lodIndex + 1];
+	else
+		dataPtr->range = 1000;
+
 	deviceContextRef->Unmap(cbPerObjectHS, 0);
 
 	deviceContextRef->HSSetConstantBuffers(0, 1, &cbPerObjectHS);
@@ -405,7 +413,7 @@ void LevelOfDetail::OnRender()
 	//}
 
 
-	worldMatrix = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y - (XM_PIDIV4), rotation.z) * XMMatrixTranslation(0.0f, -15.0f, 0.0f);
+	worldMatrix = XMMatrixScaling(3.0f, 3.0f, 3.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z) * XMMatrixTranslation(0.0f, -3.0f, 0.0f);
 
 	deviceContextRef->End(profiler.queryEndFrame);
 	deviceContextRef->End(profiler.queryDisjoint);
@@ -634,7 +642,7 @@ void LevelOfDetail::RenderCPNTLOD(LoDObject* object)
 	}
 
 	//Render
-	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture);
+	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture, object->lodIndex);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 }
 
@@ -654,7 +662,7 @@ void LevelOfDetail::RenderPhongLOD(LoDObject* object)
 	}
 
 	//Render
-	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture);
+	SetTessellationCBPerObject(worldMatrix, colors[0], hasTexture, object->lodIndex);
 	deviceContextRef->Draw(object->models[object->lodIndex]->vertexBufferSize, 0);
 }
 

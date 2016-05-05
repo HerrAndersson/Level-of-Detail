@@ -6,9 +6,17 @@ float GetDistanceAdaptiveScaleFactor(float3 cameraPos, float3 edgePos0, float3 e
 {
 	float3 midPoint = (edgePos0 + edgePos1) * 0.5f;
 	float dist = distance(midPoint, cameraPos) - minDistance;
-	float scale = 1.0f - saturate(dist / range);
+	//float scale = 1.0f - saturate(dist / range);
+	//return scale;
 
-	return scale;
+	//Not in original ------
+	if (saturate(dist / range) > 0.66f)
+		return 1.0f;
+	else if (saturate(dist / range) > 33.0f)
+		return 0.5f;
+	else
+		return 0.1f;
+	//----------------------
 }
 
 /* Returns the orientation adaptive tessellation factor (0.0f -> 1.0f)

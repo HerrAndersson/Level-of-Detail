@@ -81,7 +81,6 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 	//Inside tess factor is the average of the three edge factors
 	output.InsideTessFactor = (output.EdgeTessFactor[0] + output.EdgeTessFactor[1] + output.EdgeTessFactor[2]) / 3.0f;
 
-
 	////Minimize the increase---------------------------------------------------------------
 	//output.InsideTessFactor = clamp(output.InsideTessFactor, 1.0f, 2.0f);
 	//output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 1.0f;

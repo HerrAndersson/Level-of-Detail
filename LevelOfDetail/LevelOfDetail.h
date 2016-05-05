@@ -78,7 +78,7 @@ private:
 	void SetCBPerFrame(matrix view, matrix projection);
 
 	void SetTessellationCBPerFrame(matrix view, matrix projection);
-	void SetTessellationCBPerObject(matrix world, float3 color, int hasTexture);
+	void SetTessellationCBPerObject(matrix world, float3 color, int hasTexture, int lodIndex);
 	
 	void RenderNoLOD(LoDObject* object);
 	void RenderStaticLOD(LoDObject* object);

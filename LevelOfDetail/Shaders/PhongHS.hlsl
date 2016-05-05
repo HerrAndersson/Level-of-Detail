@@ -55,13 +55,13 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 
 	// Scale the tessellation factors based on patch orientation with respect to the viewing vector
 	// Edge 0
-	float adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[0], 0.25f);
+	float adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[0], 0.25f) * GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[2].pos.xyz, inputPatch[0].pos.xyz, minDistance, range);;
 	float tess0 = lerp(1.0f, tessellationFactor, adaptiveScaleFactor);
 	// Edge 1
-	adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[1], 0.25f);
+	adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[1], 0.25f) * GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[0].pos.xyz, inputPatch[1].pos.xyz, minDistance, range);;
 	float tess1 = lerp(1.0f, tessellationFactor, adaptiveScaleFactor);
 	// Edge 2
-	adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[2], 0.25f);
+	adaptiveScaleFactor = GetOrientationAdaptiveScaleFactor(edgeDot[2], 0.25f) * GetDistanceAdaptiveScaleFactor(cameraPosition, inputPatch[1].pos.xyz, inputPatch[2].pos.xyz, minDistance, range);;
 	float tess2 = lerp(1.0f, tessellationFactor, adaptiveScaleFactor);
 
 	output.EdgeTessFactor[0] = tess0;
@@ -74,7 +74,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_OUT, NUM_CONTROL_POIN
 	////Minimize the increase---------------------------------------------------------------
 	////Depending on distance, clamp to 2 when far away?
 	//output.InsideTessFactor = clamp(output.InsideTessFactor, 1.0f, 3.0f);
-	//output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 2.0f;
+	//output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 1.0f;
 	////------------------------------------------------------------------------------------
 
 	return output;

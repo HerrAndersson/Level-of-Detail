@@ -21,7 +21,8 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	tessellationFactor(3.0f),
 	lastTotalSeconds(0),
 	lastTimePrimCount(0),
-	saveImages(true),
+	saveImages(false),
+	savePerfData(true),
 	range(LOD_LEVELS[4]),
 	sphericalCoordDegrees(0, 0)
 {
@@ -338,92 +339,84 @@ void LevelOfDetail::OnUpdate()
 
 	camera.Update(frameTime, gameTime, moved, difference);
 
-		LoDObject* object = lodObjects[objectIndex];
+	LoDObject* object = lodObjects[objectIndex];
 
-		//Decide lod-level. For unpopping it is decided in RenderUnpoppingLOD-function
-		if (activeTechnique != UNPOPPING)
+	//Decide lod-level. For unpopping it is decided in RenderUnpoppingLOD-function
+	if (activeTechnique != UNPOPPING)
+	{
+		float length = camera.GetPosition().Length();
+		if (length < LOD_LEVELS[0])
+			object->lodIndex = 0;
+		else if (length < LOD_LEVELS[1])
+			object->lodIndex = 1;
+		else if (length < LOD_LEVELS[2])
+			object->lodIndex = 2;
+		else if (length < LOD_LEVELS[3])
+			object->lodIndex = 3;
+		else if (length < LOD_LEVELS[4])
+			object->lodIndex = 4;
+		else
+			object->lodIndex = 4;
+	}
+
+
+	if (saveImages)
+	{
+		string technique = "";
+		string path = "H:/Images";
+		switch (activeTechnique)
 		{
-			float length = camera.GetPosition().Length();
-			if (length < LOD_LEVELS[0])
-				object->lodIndex = 0;
-			else if (length < LOD_LEVELS[1])
-				object->lodIndex = 1;
-			else if (length < LOD_LEVELS[2])
-				object->lodIndex = 2;
-			else if (length < LOD_LEVELS[3])
-				object->lodIndex = 3;
-			else if (length < LOD_LEVELS[4])
-				object->lodIndex = 4;
-			else
-				object->lodIndex = 4;
+		case LoDTechnique::STATIC:
+			technique = "static";
+			path += "/Static/";
+			break;
+		case LoDTechnique::UNPOPPING:
+			technique = "unpopping";
+			path += "/Unpopping/";
+			break;
+		case LoDTechnique::CPNT:
+			technique = "cpnt";
+			path += "/Cpnt/";
+			break;
+		case LoDTechnique::PHONG:
+			technique = "phong";
+			path += "/Phong/";
+			break;
 		}
 
-	////Capture every 1000th frame
-	//int fc = timer.GetFrameCount();
-	//if (fc % 1000 == 0)
-	//{
-	//	//if(fps > 1.0f)
-	//	//	fpsVector.push_back(fps);
+		dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		SetUnpoppingLOD();
+		RenderUnpoppingLOD(object);
 
-	//	//int primitives = (int)profiler.CollectData(deviceContextRef);
-	//	//if (primitives > -1)
-	//	//	primitiveVector.push_back(primitives);
+		dx->SaveBackBufferToFile(StrToWStr("H:/Images/Unpopping/unpopping_dragon_frame_" + to_string(timer.GetFrameCount()) + ".png"));
 
-	//	string technique = "";
-	//	string path = "H:/Images";
-	//	switch (activeTechnique)
-	//	{
-	//	case LoDTechnique::STATIC:
-	//		technique = "static";
-	//		path += "/Static/";
-	//		break;
-	//	case LoDTechnique::UNPOPPING:
-	//		technique = "unpopping";
-	//		path += "/Unpopping/";
-	//		break;
-	//	case LoDTechnique::CPNT:
-	//		technique = "cpnt";
-	//		path += "/Cpnt/";
-	//		break;
-	//	case LoDTechnique::PHONG:
-	//		technique = "phong";
-	//		path += "/Phong/";
-	//		break;
-	//	}
+		dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		SetCPNTLOD();
+		RenderCPNTLOD(object);
 
-	//	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
-	//	SetUnpoppingLOD();
-	//	RenderUnpoppingLOD(object);
+		dx->SaveBackBufferToFile(StrToWStr("H:/Images/Cpnt/cpnt_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
 
-	//	dx->SaveBackBufferToFile(StrToWStr("H:/Images/Unpopping/unpopping_dragon_frame_" + to_string(timer.GetFrameCount()) + ".png"));
+		dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		SetPhongLOD();
+		RenderPhongLOD(object);
 
-	//	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
-	//	SetCPNTLOD();
-	//	RenderCPNTLOD(object);
+		dx->SaveBackBufferToFile(StrToWStr("H:/Images/Phong/phong_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
 
-	//	dx->SaveBackBufferToFile(StrToWStr("H:/Images/Cpnt/cpnt_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
+		dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		SetStaticLOD();
+		RenderStaticLOD(object);
 
-	//	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
-	//	SetPhongLOD();
-	//	RenderPhongLOD(object);
+		dx->SaveBackBufferToFile(StrToWStr("H:/Images/Static/static_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
 
-	//	dx->SaveBackBufferToFile(StrToWStr("H:/Images/Phong/phong_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
+		if (object->lodIndex < 4)
+			object->lodIndex += 1;
 
-	//	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
-	//	SetStaticLOD();
-	//	RenderStaticLOD(object);
+		dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
+		RenderStaticLOD(object);
 
-	//	dx->SaveBackBufferToFile(StrToWStr("H:/Images/Static/static_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
+		dx->SaveBackBufferToFile(StrToWStr("H:/Images/Reference/reference_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
+	}
 
-	//	if (object->lodIndex < 4)
-	//		object->lodIndex += 1;
-
-	//	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
-	//	RenderStaticLOD(object);
-
-	//	dx->SaveBackBufferToFile(StrToWStr("H:/Images/Reference/reference_dragon_frame" + to_string(timer.GetFrameCount()) + ".png"));
-
-	//}
 
 	//Rotate the object 360 degrees in all axes, then move the camera one unit
 	float increment = (XM_2PI / 24.0f); // 15 degrees
@@ -452,93 +445,83 @@ void LevelOfDetail::OnUpdate()
 
 	camera.SetPosition(newPos);
 
-
-	UINT32 fps = timer.GetFramesPerSecond();
-	if(fps > 1.0f)
-		fpsVector.push_back(fps);
-
-	int primitives = (int)profiler.CollectData(deviceContextRef);
-	if (primitives > -1)
-		primitiveVector.push_back(primitives);
-
-	if (camera.GetPosition().Length() < 5)
+	if (savePerfData)
 	{
-		//string s = "PerfData/performance " + std::to_string(activeTechnique) + ".txt";
-		//std::remove(s.c_str());
+		UINT32 fps = timer.GetFramesPerSecond();
+		double totalSeconds = timer.GetElapsedSeconds();
 
-		//Save the result
-		std::ofstream outputFile(string("PerfData/fps" + std::to_string(activeTechnique) + ".txt"), ios::out | ios::trunc /*| ios::app*/);
-
-		for (int i = 0; i < fpsVector.size(); i++)
-			outputFile << fpsVector[i] << endl;
-
-		outputFile.close();
-
-		std::ofstream outputFile1(string("PerfData/primitives" + std::to_string(activeTechnique) + ".txt"), ios::out | ios::trunc /*| ios::app*/);
-
-		for (int i = 0; i < primitiveVector.size(); i++)
-			outputFile1 << primitiveVector[i] << endl;
-
-		outputFile1.close();
-
-		camera.SetPosition({ 0.0f, 0.0f, -50.0f });
-		fpsVector.clear();
-		fpsVector.reserve(100000);
-		primitiveVector.clear();
-		primitiveVector.reserve(10000000);
-		sphericalCoordDegrees = (0, 0);
-		range = LOD_LEVELS[4];
-
-		//change to the next technique
-		switch (activeTechnique)
+		//Capture fps every second
+		if (totalSeconds - lastTotalSeconds > 1.0f)
 		{
-		case LoDTechnique::STATIC:
-			activeTechnique = UNPOPPING;
-			SetUnpoppingLOD();
-			break;
-		case LoDTechnique::UNPOPPING:
-			activeTechnique = CPNT;
-			SetCPNTLOD();
-			break;
-		case LoDTechnique::CPNT:
-			activeTechnique = PHONG;
-			SetPhongLOD();
-			break;
-		case LoDTechnique::PHONG:
-			int stop = 1;
-			break;
+			lastTotalSeconds = totalSeconds;
+			if(fps > 1.0f)
+				fpsVector.push_back(fps);
+		}
+
+		////Capture primitives three times per second
+		//if (totalSeconds - lastTimePrimCount > 0.33f)
+		//{
+		//	int primitives = (int)profiler.CollectData(deviceContextRef);
+		//	lastTimePrimCount = totalSeconds;
+		//	if (primitives > -1)
+		//		primitiveVector.push_back(primitives);
+		//}
+
+		//int primitives = (int)profiler.CollectData(deviceContextRef);
+		//if (primitives > -1)
+		//	primitiveVector.push_back(primitives);
+
+		if (camera.GetPosition().Length() < 5)
+		{
+			//string s = "PerfData/performance " + std::to_string(activeTechnique) + ".txt";
+			//std::remove(s.c_str());
+
+			//Save the result
+			std::ofstream outputFile(string("PerfData/fps" + std::to_string(activeTechnique) + ".txt"), ios::out | ios::trunc /*| ios::app*/);
+
+			for (int i = 0; i < fpsVector.size(); i++)
+				outputFile << fpsVector[i] << endl;
+
+			outputFile.close();
+
+			std::ofstream outputFile1(string("PerfData/primitives" + std::to_string(activeTechnique) + ".txt"), ios::out | ios::trunc /*| ios::app*/);
+
+			for (int i = 0; i < primitiveVector.size(); i++)
+				outputFile1 << primitiveVector[i] << endl;
+
+			outputFile1.close();
+
+			camera.SetPosition({ 0.0f, 0.0f, -50.0f });
+			fpsVector.clear();
+			fpsVector.reserve(100000);
+			primitiveVector.clear();
+			primitiveVector.reserve(10000000);
+			sphericalCoordDegrees = (0, 0);
+			range = LOD_LEVELS[4];
+
+			//change to the next technique
+			switch (activeTechnique)
+			{
+			case LoDTechnique::STATIC:
+				activeTechnique = UNPOPPING;
+				SetUnpoppingLOD();
+				break;
+			case LoDTechnique::UNPOPPING:
+				activeTechnique = CPNT;
+				SetCPNTLOD();
+				break;
+			case LoDTechnique::CPNT:
+				activeTechnique = PHONG;
+				SetPhongLOD();
+				break;
+			case LoDTechnique::PHONG:
+				int stop = 1;
+				break;
+			}
 		}
 	}
 
-
 	worldMatrix = XMMatrixScaling(0.7f, 0.7f, 0.7f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z) * XMMatrixTranslation(0.0f, 1.0f, 0.0f);
-
-
-
-
-
-
-
-
-
-	////Capture fps every second
-	//if (totalSeconds - lastTotalSeconds > 1.0f)
-	//{
-	//	lastTotalSeconds = totalSeconds;
-	//	if(fps > 1.0f)
-	//		fpsVector.push_back(fps);
-	//}
-
-
-	//Capture primitives three times per second
-	//double totalSeconds = timer.GetTotalSeconds();
-	//if (totalSeconds - lastTimePrimCount > 0.33f)
-	//{
-	//	int primitives = (int)profiler.CollectData(deviceContextRef);
-	//	lastTimePrimCount = totalSeconds;
-	//	if (primitives > -1)
-	//		primitiveVector.push_back(primitives);
-	//}
 
 #if _DEBUG
 	string s = string("FPS: " + to_string(fps));
@@ -551,10 +534,10 @@ void LevelOfDetail::OnUpdate()
 void LevelOfDetail::OnRender()
 {
 
-	//if (saveImages)
-	//{
-	//	return;
-	//}
+	if (saveImages)
+	{
+		return;
+	}
 
 	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
 

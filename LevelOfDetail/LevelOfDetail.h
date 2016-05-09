@@ -40,6 +40,7 @@ private:
 	float2 sphericalCoordDegrees;
 
 	bool saveImages;
+	bool savePerfData;
 
 	vector<int> primitiveVector;
 	double lastTimePrimCount;

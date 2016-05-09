@@ -2,103 +2,66 @@ import plotly
 from plotly.graph_objs import Scatter, Layout
 import sys
 
-#https://plot.ly/python/line-charts/
-with open('./PerfData/One/fps1.txt') as f1:
-    lines1 = f1.read().splitlines()
-with open('./PerfData/One/fps2.txt') as f2:
-    lines2 = f2.read().splitlines()
-with open('./PerfData/One/fps3.txt') as f3:
-    lines3 = f3.read().splitlines()
-with open('./PerfData/One/fps4.txt') as f4:
-    lines4 = f4.read().splitlines()
+def get_list(x):
+    with open(x) as f:
+        lines = f.read().splitlines()
+    return lines
 
-lengths = [len(lines1), len(lines2), len(lines3), len(lines4)]
+#def plot_list(xList, yList, title, xName, yName):
+#    plotly.offline.plot
+#    ({
+#        "data": 
+#        [Scatter(x=xList, y=yList, mode = 'lines+markers', name = title, marker = dict(color = 'rgba(0, 255, 0, .8)'))],
+#        "layout": Layout(dict(title = title,
+#                 xaxis = dict(title = xName),
+#                 yaxis = dict(title = yName)))
+#    })
+#    return 0
+
+def plot_list(xList, yList1, yList2, title, xName, yName):
+
+    layout = dict(title = title,
+            xaxis = dict(title = xName),
+            yaxis = dict(title = yName),)
+
+    plotly.offline.plot({
+    "data": 
+    [Scatter(x=xList, y=yList1, mode = 'lines+markers', name = 'Dragon', marker = dict(color = 'rgba(0, 200, 0, .8)')),
+     Scatter(x=xList, y=yList2, mode = 'lines+markers', name = 'Truck', marker = dict(color = 'rgba(0, 0, 200, .8)'))],
+
+    "layout": Layout(layout)})
+
+
+static_list = get_list('./PerfData/Dragon/Primitives/primitives1.txt')
+static_list1 = get_list('./PerfData/Truck/Primitives/primitives1.txt')
+
+unpop_list = get_list('./PerfData/Dragon/Primitives/primitives2.txt')
+unpop_list1 = get_list('./PerfData/Truck/Primitives/primitives2.txt')
+
+cpnt_list = get_list('./PerfData/Dragon/Primitives/primitives3.txt')
+cpnt_list1 = get_list('./PerfData/Truck/Primitives/primitives3.txt')
+
+phong_list = get_list('./PerfData/Dragon/Primitives/primitives4.txt')
+phong_list1 = get_list('./PerfData/Truck/Primitives/primitives4.txt')
+
+lengths = [len(static_list), len(unpop_list), len(cpnt_list), len(phong_list), len(static_list1), len(unpop_list1), len(cpnt_list1), len(phong_list1)]
 lengths.sort()
 
 numbers = []
-count = lengths[3]
+count = lengths[7]
 i = 0
 while i < count:
     i = i + 1
     numbers.append(i)
 
+
 techniqueToPlot = int(sys.argv[1])
 
-############################# Plot Static LoD #############################
 if techniqueToPlot == 0:
-    with open('./PerfData/One/primitives1.txt') as f11:
-        lines11 = f11.read().splitlines()
-
-    layout = dict(title = 'Static',
-              xaxis = dict(title = 'Seconds'),
-              yaxis = dict(title = 'Frames'),)
-
-    plotly.offline.plot({
-    "data": 
-    [Scatter(x=numbers, y=lines1, mode = 'lines+markers', name = 'Frames', marker = dict(color = 'rgba(0, 255, 0, .8)')),
-        Scatter(x=numbers, y=lines11, mode = 'lines+markers', name = 'Primitives', marker = dict(color = 'rgba(255, 0, 0, .8)'))],
-    "layout": Layout(layout)
-    })
-
-############################# Plot Unpopping LoD #############################
+    plot_list(numbers, static_list, static_list1, 'Static LoD', 'Seconds', 'Frames')
 if techniqueToPlot == 1:
-    with open('./PerfData/One/primitives2.txt') as f22:
-        lines22 = f22.read().splitlines()
-
-
-    layout = dict(title = 'Unpopping',
-            xaxis = dict(title = 'Seconds'),
-            yaxis = dict(title = 'Frames'),)
-
-    plotly.offline.plot({
-    "data": 
-    [Scatter(x=numbers, y=lines2, mode = 'lines+markers', name = 'Frames', marker = dict(color = 'rgba(0, 255, 0, .8)')),
-        Scatter(x=numbers, y=lines22, mode = 'lines+markers', name = 'Primitives', marker = dict(color = 'rgba(255, 0, 0, .8)'))],
-    "layout": Layout(layout)})
-
-################################ Plot Cpnt ###################################
+    plot_list(numbers, unpop_list, unpop_list1, 'Unpopping LoD', 'Seconds', 'Frames')
 if techniqueToPlot == 2:
-    with open('./PerfData/One/primitives3.txt') as f33:
-        lines33 = f33.read().splitlines()
-
-
-    layout = dict(title = 'Curved PN Triangles',
-            xaxis = dict(title = 'Seconds'),
-            yaxis = dict(title = 'Frames'),)
-
-    plotly.offline.plot({
-    "data": 
-    [Scatter(x=numbers, y=lines3, mode = 'lines+markers', name = 'Frames', marker = dict(color = 'rgba(0, 255, 0, .8)')),
-        Scatter(x=numbers, y=lines33, mode = 'lines+markers', name = 'Primitives', marker = dict(color = 'rgba(255, 0, 0, .8)'))],
-    "layout": Layout(layout)})
-################################ Plot Phong ###################################
+    plot_list(numbers, cpnt_list, cpnt_list1, 'Curved PN Triangles', 'Seconds', 'Frames')
 if techniqueToPlot == 3:
-    with open('./PerfData/One/primitives4.txt') as f44:
-        lines44 = f44.read().splitlines()
-
-    layout = dict(title = 'Phong Tessellation',
-        xaxis = dict(title = 'Seconds'),
-        yaxis = dict(title = 'Frames'),)
-
-    plotly.offline.plot({
-    "data":
-    [Scatter(x=numbers, y=lines4, mode = 'lines+markers', name = 'Frames', marker = dict(color = 'rgba(0, 255, 0, .8)')),
-        Scatter(x=numbers, y=lines44, mode = 'lines+markers', name = 'Primitives', marker = dict(color = 'rgba(255, 0, 0, .8)'))],
-    "layout": Layout(layout)})
-
-################################ Plot all four techniques
-################################ ###################################
-if techniqueToPlot == 4:
-
-    layout = dict(title = '',
-        xaxis = dict(title = 'Seconds'),
-        yaxis = dict(title = 'Frames'),)
-
-    plotly.offline.plot({
-        "data": 
-        [Scatter(x=numbers, y=lines1, mode = 'lines+markers', name = 'Static'),
-            Scatter(x=numbers, y=lines2, mode = 'lines+markers', name = 'Unpopping'),
-            Scatter(x=numbers, y=lines3, mode = 'lines+markers', name = 'Cpnt'),
-            Scatter(x=numbers, y=lines4, mode = 'lines+markers', name = 'Phong'),],
-        "layout": Layout(layout)
-        })
+    plot_list(numbers, phong_list, phong_list1, 'Phong Tessellation', 'Seconds', 'Frames')

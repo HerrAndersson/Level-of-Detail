@@ -59,7 +59,7 @@ struct Profiler
 			throw std::runtime_error("Profiler::Init: Failed to create queryPipelineStatistics. " + GetErrorMessageFromHRESULT(hr));
 	}
 
-	void CollectData(ID3D11DeviceContext* deviceContext, string filename)
+	UINT64 CollectData(ID3D11DeviceContext* deviceContext)
 	{
 		//Wait for data to be available
 		while (deviceContext->GetData(queryDisjoint, NULL, 0, 0) == S_FALSE)
@@ -72,7 +72,7 @@ struct Profiler
 		deviceContext->GetData(queryDisjoint, &tsDisjoint, sizeof(tsDisjoint), 0);
 		if (tsDisjoint.Disjoint)
 		{
-			return;
+			return -1;
 		}
 
 		//Get all the timestamps
@@ -91,14 +91,8 @@ struct Profiler
 		D3D11_QUERY_DATA_PIPELINE_STATISTICS pipelineStatistics;
 		deviceContext->GetData(queryPipelineStatistics, &pipelineStatistics, sizeof(pipelineStatistics), 0);
 
-		printf(string(to_string(pipelineStatistics.CPrimitives) + "\n").c_str());
+		/*printf(string(to_string(pipelineStatistics.CPrimitives) + "\n").c_str());*/
 
-		//std::ofstream outputFile;
-		//outputFile.open(filename, ios::out | ios::app);
-
-		//outputFile << msRenderObject << endl;
-
-		//outputFile.close();
-
+		return pipelineStatistics.CPrimitives;
 	}
 };

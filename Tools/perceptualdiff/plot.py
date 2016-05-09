@@ -7,17 +7,6 @@ def get_list(x):
         lines = f.read().splitlines()
     return lines
 
-#def plot_list(xList, yList, title, xName, yName):
-#    plotly.offline.plot
-#    ({
-#        "data": 
-#        [Scatter(x=xList, y=yList, mode = 'lines+markers', name = title, marker = dict(color = 'rgba(0, 255, 0, .8)'))],
-#        "layout": Layout(dict(title = title,
-#                 xaxis = dict(title = xName),
-#                 yaxis = dict(title = yName)))
-#    })
-#    return 0
-
 def plot_list(xList, yList1, yList2, title, xName, yName):
 
     layout = dict(title = title,
@@ -65,3 +54,31 @@ if techniqueToPlot == 2:
     plot_list(numbers, cpnt_list, cpnt_list1, 'Curved PN Triangles', 'Seconds', 'Frames')
 if techniqueToPlot == 3:
     plot_list(numbers, phong_list, phong_list1, 'Phong Tessellation', 'Seconds', 'Frames')
+
+
+
+if techniqueToPlot == 4:
+
+    static_list = get_list('./OutputTxt/Static.txt')
+    unpopping_list = get_list('./OutputTxt/Unpopping.txt')
+    cpnt_list = get_list('./OutputTxt/Cpnt.txt')
+    phong_list = get_list('./OutputTxt/Phong.txt')
+
+    numbers = []
+    i = 0
+    while i < 150000:
+        i = i + 1
+        numbers.append(i)
+
+    layout = dict(title = 'Continuous Error',
+            xaxis = dict(title = 'Capture point'),
+            yaxis = dict(title = 'Error'),)
+
+    plotly.offline.plot({
+    "data": 
+    [Scatter(x=numbers, y=static_list, mode = 'lines+markers', name = 'Static', marker = dict(color = 'rgba(0, 200, 0, .8)')),
+        Scatter(x=numbers, y=unpopping_list, mode = 'lines+markers', name = 'Unpopping', marker = dict(color = 'rgba(0, 0, 200, .8)')),
+        Scatter(x=numbers, y=cpnt_list, mode = 'lines+markers', name = 'Cpnt', marker = dict(color = 'rgba(200, 0, 200, .8)')),
+        Scatter(x=numbers, y=phong_list, mode = 'lines+markers', name = 'Phong', marker = dict(color = 'rgba(200, 0, 0, .8)'))],
+
+    "layout": Layout(layout)})

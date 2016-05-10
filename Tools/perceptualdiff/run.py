@@ -1,9 +1,21 @@
 from pdiffer import PDiffer
 import os
 import threading
+import re
 
 def get_num(x):
     return int(''.join(ele for ele in x if ele.isdigit()))
+
+def get_first_num(x):
+    return int(re.findall('\d+',x)[0])
+
+def compare(item1, item2):
+    if get_first_num(item1) < get_first_num(item2):
+        return -1
+    elif get_first_num(item1) > get_first_num(item2):
+        return 1
+    else:
+        return 0
 
 def handle_dir(dirName, reference_list):
 
@@ -12,7 +24,7 @@ def handle_dir(dirName, reference_list):
     for content in os.listdir('H:/Images/'+ dirName): # "." means current directory
         image_list.append(content)
     
-    image_list.sort();
+    image_list.sort(cmp = compare)
 
     #Open and erase the contents of the output text file
     target = open('OutputTxt/' + dirName + '.txt', 'w')
@@ -49,7 +61,7 @@ reference_list = []
 for content in os.listdir('H:/Images/Reference'): # "." means current directory
     reference_list.append(content)
 
-reference_list.sort();
+reference_list.sort(cmp = compare)
 
 #Get sub directories containing the images for each technique
 dir_list = next(os.walk('H:/Images'))[1]
@@ -60,10 +72,6 @@ dir_list.remove('xx')
 for dir in dir_list:
     t = threading.Thread(target = handle_dir, args = (dir, reference_list))
     t.start()
-
-
-
-
 
 
 

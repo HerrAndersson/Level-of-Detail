@@ -1,0 +1,10 @@
+0,1,2,3,4 - Change LoD type
+
+w,a,s,d - Move around in freecam
+n,m - Decrease/Increase tessellation factor
+
+Mouse - Look around in freecam
+Tab - Switch camera mode
+Left Shift - Toggle Wireframe mode
+
+z,x,c,v - Switch model

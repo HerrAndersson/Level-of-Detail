@@ -49,7 +49,7 @@ static const string TEXTURE_PATH = ASSET_PATH + "Textures/";
 static const float F_EPSILON = std::numeric_limits<float>::epsilon();
 static const float F_MAX = (std::numeric_limits<float>::max)();
 static const int LOD_LEVELS[] = { 8, 16, 32, 64, 128 };
-static const float BLEND_TIME = 1.0f; //Seconds
+static const float BLEND_TIME = 0.8f; //Seconds
 
 #define SAFE_RELEASE(x) if( x ) { (x)->Release(); (x) = nullptr; }
 #define SAFE_DELETE(x) if( x ) { delete x; (x) = nullptr; }

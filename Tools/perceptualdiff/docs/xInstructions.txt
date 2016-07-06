@@ -1,0 +1,5 @@
+Compare images with pdiffder:
+
+Open cmd by shift+right clicking on "perceptualdiff" folder, choose open command prompt here.
+Put all images in the "Images" folder
+Run the command: python run_pdiffer.py

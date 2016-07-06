@@ -31,7 +31,7 @@ float4 main(VS_OUT input) : SV_TARGET
 		finalColor = float4(color, 1.0f);
 	}
 
-	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, 100));
+	float3 lightDir = normalize(float3(0,100,0) - float3(0, 0, -100));
 	finalColor = float4(finalColor * max(0, dot(input.normal, lightDir)));
 
 	return float4(finalColor.xyz, blendFactor);

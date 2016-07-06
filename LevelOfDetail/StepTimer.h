@@ -24,7 +24,7 @@ public:
 		m_framesThisSecond(0),
 		m_qpcSecondCounter(0),
 		m_isFixedTimeStep(false),
-		m_targetElapsedTicks(TicksPerSecond / 60)
+		m_targetElapsedTicks(TicksPerSecond / 30)
 	{
 		QueryPerformanceFrequency(&m_qpcFrequency);
 		QueryPerformanceCounter(&m_qpcLastTime);

@@ -31,19 +31,19 @@ def compare_last(item1, item2):
 #Handles the pop-comparison for static, cpnt, and phong
 def handle_dir(dirName, ref_list):
 
-    dir_list = next(os.walk('C:/Users/Jonas/Desktop/DragonPop/' + dirName))[1]
+    dir_list = next(os.walk('C:/Users/Jonas/Desktop/ManPop/' + dirName))[1]
     dir_list.sort(cmp = compare_last)
 
     for dir in dir_list:
         image_list = []
         #Get names of all files in the folder
-        for content in os.listdir('C:/Users/Jonas/Desktop/DragonPop/' + dirName + '/' + dir):
+        for content in os.listdir('C:/Users/Jonas/Desktop/ManPop/' + dirName + '/' + dir):
             image_list.append(content)
     
         image_list.sort(cmp = compare_first)
 
         #Open and erase the contents of the output text file
-        target = open('OutputTxt/' + dirName + dir + '.txt', 'w')
+        target = open('OutputTxtMan/' + dirName + dir + '.txt', 'w')
         target.truncate()
 
         #Go through and compare all images in the folder to the reference,
@@ -51,7 +51,7 @@ def handle_dir(dirName, ref_list):
         i = 0
         while i < len(image_list):
     
-            result = pdiffer.pdiff('C:/Users/Jonas/Desktop/DragonPop/' + dirName + '/' + dir + '/' + image_list[i], 'C:/Users/Jonas/Desktop/DragonPop/' + dirName + '/' + dir + '/' + image_list[i + 1], threshold = 0, fov = 70)
+            result = pdiffer.pdiff('C:/Users/Jonas/Desktop/ManPop/' + dirName + '/' + dir + '/' + image_list[i], 'C:/Users/Jonas/Desktop/ManPop/' + dirName + '/' + dir + '/' + image_list[i + 1], threshold = 0, fov = 70)
     
             str = unicode(result)
             if not result:
@@ -75,29 +75,29 @@ pdiffer = PDiffer(bin='perceptualdiff')
 
 ###################### Static, Cpnt, Phong #######################
 #Get sub-directories containing the images for each technique
-dir_list = next(os.walk('C:/Users/Jonas/Desktop/DragonPop'))[1]
+dir_list = next(os.walk('C:/Users/Jonas/Desktop/ManPop'))[1]
 dir_list.remove('Unpopping')
 
-#for dir in dir_list:
-#    t = threading.Thread(target = handle_dir, args = (dir, dir_list))
-#    t.start()
+for dir in dir_list:
+    t = threading.Thread(target = handle_dir, args = (dir, dir_list))
+    t.start()
 
 
 ########################### Unpopping ############################
-dir_list = next(os.walk('C:/Users/Jonas/Desktop/DragonPop/Unpopping'))[1]
+dir_list = next(os.walk('C:/Users/Jonas/Desktop/ManPop/Unpopping'))[1]
 dir_list.sort(cmp = compare_last)
 
 for dir in dir_list:
-    subdir_list = next(os.walk('C:/Users/Jonas/Desktop/DragonPop/Unpopping/' + dir))[1]
+    subdir_list = next(os.walk('C:/Users/Jonas/Desktop/ManPop/Unpopping/' + dir))[1]
     subdir_list.sort(cmp = compare_last)
 
-    #Holds results of folders 1,2,3,4 in every Run# directory. numbers mean 
+    #Holds results of folders 1,2,3,4 in every Run# directory.
     dir_result_list = []
 
     for subdir in subdir_list:
         image_list = []
         #Get names of all files in the folder
-        for content in os.listdir('C:/Users/Jonas/Desktop/DragonPop/Unpopping/' + dir + '/' + subdir):
+        for content in os.listdir('C:/Users/Jonas/Desktop/ManPop/Unpopping/' + dir + '/' + subdir):
             image_list.append(content)
     
         image_list.sort(cmp = compare_first)
@@ -109,7 +109,7 @@ for dir in dir_list:
         result_list = []
         while i < len(image_list)-1:
    
-            result = pdiffer.pdiff('C:/Users/Jonas/Desktop/DragonPop/Unpopping/' + dir + '/' + subdir + '/' + image_list[i], 'C:/Users/Jonas/Desktop/DragonPop/Unpopping/' + dir + '/' + subdir + '/' + image_list[i + 1], threshold = 0, fov = 70)
+            result = pdiffer.pdiff('C:/Users/Jonas/Desktop/ManPop/Unpopping/' + dir + '/' + subdir + '/' + image_list[i], 'C:/Users/Jonas/Desktop/ManPop/Unpopping/' + dir + '/' + subdir + '/' + image_list[i + 1], threshold = 0, fov = 70)
     
             str = unicode(result)
             if not result:
@@ -130,11 +130,11 @@ for dir in dir_list:
     #Output the dir_result_list, which holds all results of folders 1,2,3,4
     #Open and erase the contents of the output text file
 
-    avg = open('OutputTxt/Unpopping' + dir + '_avg.txt', 'w')
+    avg = open('OutputTxtMan/Unpopping' + dir + '_avg.txt', 'w')
     avg.truncate()
-    min = open('OutputTxt/Unpopping' + dir + '_min.txt', 'w')
+    min = open('OutputTxtMan/Unpopping' + dir + '_min.txt', 'w')
     min.truncate()
-    max = open('OutputTxt/Unpopping' + dir + '_max.txt', 'w')
+    max = open('OutputTxtMan/Unpopping' + dir + '_max.txt', 'w')
     max.truncate()
 
     for pop_result in dir_result_list:
@@ -149,26 +149,3 @@ for dir in dir_list:
     avg.close()
     min.close()
     max.close()
-
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-#pdiff('image1.png', 'image2.png',
-#    fov=65,
-#    threshold=40,
-#    gamma=2.2,
-#    luminance=100,
-#    luminanceonly=True,
-#    colorfactor=1.0,
-#    downsample=0,
-#    output='o.ppm')

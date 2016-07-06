@@ -32,18 +32,9 @@ private:
 	float tessellationMinDistance;
 	float tessellationRange;
 	float tessellationFactor;
-
-	vector<int> fpsVector;
-	double lastTotalSeconds;
-
 	float range;
 	float2 sphericalCoordDegrees;
-
-	bool saveImages;
-	bool savePerfData;
-
-	vector<int> primitiveVector;
-	double lastTimePrimCount;
+	bool goForward;
 
 	matrix projectionMatrix;
 	matrix viewMatrix;
@@ -97,8 +88,6 @@ private:
 	void RenderUnpoppingLOD(LoDObject* object);
 	void RenderCPNTLOD(LoDObject* object);
 	void RenderPhongLOD(LoDObject* object);
-
-	void GenerateImages();
 
 	void SetNoLOD();
 	void SetStaticLOD();

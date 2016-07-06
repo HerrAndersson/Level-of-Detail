@@ -313,7 +313,7 @@ void LevelOfDetail::SetTessellationCBPerObject(matrix world, float3 color, int h
 
 	dataPtr->viewVector = v;
 	dataPtr->minDistance = 0;
-	dataPtr->range = LOD_LEVELS[lodIndex];
+	dataPtr->range = static_cast<float>(LOD_LEVELS[lodIndex]);
 
 	deviceContextRef->Unmap(cbPerObjectHS, 0);
 

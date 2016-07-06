@@ -41,7 +41,7 @@ using Microsoft::WRL::ComPtr;
 using std::string;
 using std::wstring;
 
-static const int SCREEN_WIDTH = 900;
+static const int SCREEN_WIDTH = 1600;
 static const int SCREEN_HEIGHT = 900;
 static const string ASSET_PATH = "Assets/";
 static const string MODEL_PATH = ASSET_PATH + "Models/";

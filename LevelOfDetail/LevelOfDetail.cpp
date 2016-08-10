@@ -21,7 +21,8 @@ LevelOfDetail::LevelOfDetail(UINT width, UINT height, std::wstring name) :
 	tessellationFactor(3.0f),
 	range(10),
 	sphericalCoordDegrees(0, 0),
-	goForward(true)
+	goForward(true),
+	speed(0.01f)
 {
 	for (int i = 0; i < 1; i++)
 	{
@@ -37,7 +38,7 @@ void LevelOfDetail::OnInit()
 	deviceRef = dx->GetDevice();
 	deviceContextRef = dx->GetDeviceContext();
 
-	profiler.Init(deviceRef);
+	//profiler.Init(deviceRef);
 
 	camera.Init({ 0.0f, 0.0f, 0.0f }, Camera::CameraMode::SCRIPTED);
 	camera.SetMoveSpeed(0.3f);
@@ -380,9 +381,9 @@ void LevelOfDetail::OnUpdate()
 	//sphericalCoordDegrees.y += increment;
 
 	if (goForward)
-		range -= 0.01f;
+		range -= speed;
 	else
-		range += 0.01f;
+		range += speed;
 
 	if (range < 3.0f || range > LOD_LEVELS[4])
 		goForward = !goForward;
@@ -398,7 +399,7 @@ void LevelOfDetail::OnUpdate()
 	worldMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z) * XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
 #if _DEBUG
-	string s = string("FPS: " + to_string(fps));
+	string s = string("FPS: " + to_string(timer.GetFramesPerSecond()));
 	SetWindowText(Win32Application::GetHwnd(), wstring(s.begin(), s.end()).c_str());
 #endif
 
@@ -409,9 +410,9 @@ void LevelOfDetail::OnRender()
 {
 	dx->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
 
-	deviceContextRef->Begin(profiler.queryDisjoint);
-	deviceContextRef->End(profiler.queryBeginFrame);
-	deviceContextRef->Begin(profiler.queryPipelineStatistics);
+	//deviceContextRef->Begin(profiler.queryDisjoint);
+	//deviceContextRef->End(profiler.queryBeginFrame);
+	//deviceContextRef->Begin(profiler.queryPipelineStatistics);
 
 	LoDObject* object = lodObjects[objectIndex];
 
@@ -455,11 +456,10 @@ void LevelOfDetail::OnRender()
 		break;
 	}
 
-	deviceContextRef->End(profiler.queryRenderObject);
-
-	deviceContextRef->End(profiler.queryEndFrame);
-	deviceContextRef->End(profiler.queryDisjoint);
-	deviceContextRef->End(profiler.queryPipelineStatistics);
+	//deviceContextRef->End(profiler.queryRenderObject);
+	//deviceContextRef->End(profiler.queryEndFrame);
+	//deviceContextRef->End(profiler.queryDisjoint);
+	//deviceContextRef->End(profiler.queryPipelineStatistics);
 
 	dx->EndScene();
 }
@@ -778,6 +778,14 @@ void LevelOfDetail::OnKeyUp(UINT8 key)
 		break;
 	case 'M':
 		tessellationFactor+=0.1f;
+		break;
+	case 'J':
+		speed -= 0.001f;
+		if (speed < 0)
+			speed = 0;
+		break;
+	case 'K':
+		speed += 0.001f;
 		break;
 	default:
 		break;

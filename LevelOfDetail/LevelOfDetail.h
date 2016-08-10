@@ -33,6 +33,7 @@ private:
 	float tessellationRange;
 	float tessellationFactor;
 	float range;
+	float speed;
 	float2 sphericalCoordDegrees;
 	bool goForward;
 
@@ -45,7 +46,7 @@ private:
 	StepTimer timer;
 	DirectXHandler* dx;
 	MouseHandler mouse;
-	Profiler profiler;
+	//Profiler profiler;
 
 	vector<LoDObject*> lodObjects;
 
